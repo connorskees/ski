@@ -34,6 +34,7 @@ Variables are declared using either the `let` or `const` keywords.
 Everything is locally scoped.
 
 `let x = 4;`
+
 `const y = "suh";`
 
 ## Data Types
@@ -183,4 +184,4 @@ pass
 
 ## File I/O
 
-Ski has first class path support. Files can be read into memory using `read(path)`
+pass

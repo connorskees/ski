@@ -17,8 +17,13 @@ pub enum Token {
     Loop,
     SemiColon,
     Equals,
+    Add,
+    Sub,
+    Mul,
+    Div,
     SingleQuote,
     DoubleQuote,
+    Return,
 }
 
 impl Token {
@@ -34,10 +39,15 @@ impl Token {
             "for" => Token::For,
             "while" => Token::While,
             "loop" => Token::Loop,
+            "return" => Token::Return,
             "=" => Token::Equals,
             ";" => Token::SemiColon,
             "'" => Token::SingleQuote,
             "\"" => Token::DoubleQuote,
+            "+" => Token::Add,
+            "-" => Token::Sub,
+            "*" => Token::Mul,
+            "/" => Token::Div,
             _ => Token::Identifier(token.to_owned()),
         }
     }
@@ -64,9 +74,12 @@ fn main() -> io::Result<()> {
                 indentifiers.push(Token::SemiColon);
                 current_indentifier = String::new();
             },
-            '{' | '}' => {
+            '{' | '}' | '(' | ')' | '+' | '-' => {
+                if current_indentifier != String::new() {
+                    indentifiers.push(Token::new(current_indentifier));
+                    current_indentifier = String::new();
+                }
                 indentifiers.push(Token::new(c.to_string()));
-                current_indentifier = String::new();
             },
             _ => {
                 current_indentifier += &c.to_string();

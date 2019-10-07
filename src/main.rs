@@ -6,7 +6,19 @@ use std::io::{self, Read, BufReader, stdin};
 pub enum Token {
     Identifier(String),
     OpenBracket,
-    CloseBracket
+    CloseBracket,
+    Function,
+    OpenParen,
+    CloseParen,
+    Let,
+    Const,
+    For,
+    While,
+    Loop,
+    SemiColon,
+    Equals,
+    SingleQuote,
+    DoubleQuote,
 }
 
 impl Token {
@@ -14,6 +26,18 @@ impl Token {
         match token.as_ref() {
             "{" => Token::OpenBracket,
             "}" => Token::CloseBracket,
+            "fn" => Token::Function,
+            "(" => Token::OpenParen,
+            ")" => Token::CloseParen,
+            "let" => Token::Let,
+            "const" => Token::Const,
+            "for" => Token::For,
+            "while" => Token::While,
+            "loop" => Token::Loop,
+            "=" => Token::Equals,
+            ";" => Token::SemiColon,
+            "'" => Token::SingleQuote,
+            "\"" => Token::DoubleQuote,
             _ => Token::Identifier(token.to_owned()),
         }
     }
@@ -30,9 +54,16 @@ fn main() -> io::Result<()> {
     for c in input.chars() {
         match c {
             ' ' => {
+                if current_indentifier != String::new() {
+                    indentifiers.push(Token::new(current_indentifier));
+                    current_indentifier = String::new();
+                }
+            },
+            ';' => {
                 indentifiers.push(Token::new(current_indentifier));
+                indentifiers.push(Token::SemiColon);
                 current_indentifier = String::new();
-            }
+            },
             '{' | '}' => {
                 indentifiers.push(Token::new(c.to_string()));
                 current_indentifier = String::new();

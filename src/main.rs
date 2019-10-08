@@ -24,6 +24,7 @@ pub enum Token {
     SingleQuote,
     DoubleQuote,
     Return,
+    Integer(u32)
 }
 
 impl Token {
@@ -48,7 +49,9 @@ impl Token {
             "-" => Token::Sub,
             "*" => Token::Mul,
             "/" => Token::Div,
-            _ => Token::Identifier(token.to_owned()),
+            _ => {
+                Token::Identifier(token.to_owned())
+            }
         }
     }
 }
@@ -69,12 +72,7 @@ fn main() -> io::Result<()> {
                     current_indentifier = String::new();
                 }
             },
-            ';' => {
-                indentifiers.push(Token::new(current_indentifier));
-                indentifiers.push(Token::SemiColon);
-                current_indentifier = String::new();
-            },
-            '{' | '}' | '(' | ')' | '+' | '-' => {
+            '{' | '}' | '(' | ')' | '+' | '-' | ';' | '*' | '/' => {
                 if current_indentifier != String::new() {
                     indentifiers.push(Token::new(current_indentifier));
                     current_indentifier = String::new();

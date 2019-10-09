@@ -18,6 +18,8 @@ pub enum Token {
     Loop,
     SemiColon,
     DoubleEqual,
+    DoublePlus,
+    DoubleMinus,
     Equal,
     Add,
     Sub,
@@ -70,11 +72,15 @@ impl Token {
             "-" => Token::Sub,
             "*" => Token::Mul,
             "/" => Token::Div,
+            "++" => Token::DoublePlus,
+            "--" => Token::DoubleMinus,
             "**" => Token::Pow,
             "+=" => Token::AddAssign,
             "-=" => Token::SubAssign,
             ">" => Token::Gt,
             "<" => Token::Lt,
+            ">=" => Token::GtEq,
+            "<=" => Token::LtEq,
             ">>" => Token::Shr,
             "<<" => Token::Shl,
             "^" => Token::Xor,
@@ -130,18 +136,6 @@ fn main() -> io::Result<()> {
                 }
                 identifiers.push(Token::new(&c.to_string()));
             },
-            '+' => {
-                if current_identifier != "" {
-                    identifiers.push(Token::new(current_identifier));
-                }
-                current_identifier = "+";
-            },
-            '-' => {
-                if current_identifier != "" {
-                    identifiers.push(Token::new(current_identifier));
-                }
-                current_identifier = "-";
-            },
             '=' => {
                 if current_identifier == "=" {
                     identifiers.push(Token::DoubleEqual);
@@ -157,6 +151,18 @@ fn main() -> io::Result<()> {
 
                 if current_identifier == "-" {
                     identifiers.push(Token::SubAssign);
+                    current_identifier = "";
+                    continue;
+                }
+
+                  if current_identifier == "<" {
+                    identifiers.push(Token::LtEq);
+                    current_identifier = "";
+                    continue;
+                }
+
+                 if current_identifier == ">" {
+                    identifiers.push(Token::GtEq);
                     current_identifier = "";
                     continue;
                 }
@@ -184,6 +190,12 @@ fn main() -> io::Result<()> {
             }
             '<' => {
                 double_identifier!("<", current_identifier, identifiers);
+            }
+            '+' => {
+                double_identifier!("+", current_identifier, identifiers);
+            }
+            '-' => {
+                double_identifier!("-", current_identifier, identifiers);
             }
             _ => {
                 match current_identifier {

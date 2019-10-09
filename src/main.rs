@@ -113,7 +113,7 @@ fn main() -> io::Result<()> {
                     current_identifier = "";
                 }
             },
-            '{' | '}' | '(' | ')' | '+' | '-' | ';' | '>' | '<' => {
+            '{' | '}' | '(' | ')' | '+' | '-' | ';' => {
                 if current_identifier != "" {
                     identifiers.push(Token::new(current_identifier));
                     current_identifier = "";
@@ -121,7 +121,17 @@ fn main() -> io::Result<()> {
                 identifiers.push(Token::new(&c.to_string()));
             },
             '=' => {
-                double_identifier!("=", current_identifier, identifiers);
+                if current_identifier == "=" {
+                    identifiers.push(Token::DoubleEqual);
+                    current_identifier = "";
+                    continue;
+                }
+                
+                if current_identifier != "" {
+                    identifiers.push(Token::new(current_identifier));
+                }
+
+                current_identifier = "=";
             }
             '&' => {
                 double_identifier!("&", current_identifier, identifiers);
@@ -137,7 +147,7 @@ fn main() -> io::Result<()> {
             }
             _ => {
                 match current_identifier {
-                    "=" | "&" | "|" | "*" | "/" => {
+                    "=" | "&" | "|" | "*" | "/" | "<" | ">" => {
                         identifiers.push(Token::new(current_identifier));
                         current_identifier = "";
                     }

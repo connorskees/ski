@@ -32,6 +32,8 @@ pub enum Token {
     Lt,
     GtEq,
     LtEq,
+    Shr,
+    Shl,
     LogicalAnd,
     LogicalOr,
     BinaryAnd,
@@ -68,6 +70,8 @@ impl Token {
             "**" => Token::Pow,
             ">" => Token::Gt,
             "<" => Token::Lt,
+            ">>" => Token::Shr,
+            "<<" => Token::Shl,
             "&" => Token::BinaryAnd,
             "|" => Token::BinaryOr,
             "&&" => Token::LogicalAnd,
@@ -144,6 +148,12 @@ fn main() -> io::Result<()> {
             }
             '/' => {
                 double_identifier!("/", current_identifier, identifiers);
+            }
+            '>' => {
+                double_identifier!(">", current_identifier, identifiers);
+            }
+            '<' => {
+                double_identifier!("<", current_identifier, identifiers);
             }
             _ => {
                 match current_identifier {

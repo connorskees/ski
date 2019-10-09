@@ -30,6 +30,8 @@ pub enum Token {
     Integer(u32),
     Gt,
     Lt,
+    GtEq,
+    LtEq,
     LogicalAnd,
     LogicalOr,
     BinaryAnd,

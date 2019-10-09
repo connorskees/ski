@@ -75,6 +75,8 @@ impl Token {
             "-=" => Token::SubAssign,
             ">" => Token::Gt,
             "<" => Token::Lt,
+            ">=" => Token::GtEq,
+            "<=" => Token::LtEq,
             ">>" => Token::Shr,
             "<<" => Token::Shl,
             "^" => Token::Xor,
@@ -160,6 +162,19 @@ fn main() -> io::Result<()> {
                     current_identifier = "";
                     continue;
                 }
+
+                if current_identifier == "<" {
+                    identifiers.push(Token::LtEq);
+                    current_identifier = "";
+                    continue;
+                }
+
+                if current_identifier == ">" {
+                    identifiers.push(Token::GtEq);
+                    current_identifier = "";
+                    continue;
+                }
+
                 
                 if current_identifier != "" {
                     identifiers.push(Token::new(current_identifier));

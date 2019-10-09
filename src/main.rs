@@ -24,6 +24,8 @@ pub enum Token {
     Mul,
     Div,
     Pow,
+    AddAssign,
+    SubAssign,
     SingleQuote,
     DoubleQuote,
     Return,
@@ -69,6 +71,8 @@ impl Token {
             "*" => Token::Mul,
             "/" => Token::Div,
             "**" => Token::Pow,
+            "+=" => Token::AddAssign,
+            "-=" => Token::SubAssign,
             ">" => Token::Gt,
             "<" => Token::Lt,
             ">>" => Token::Shr,
@@ -119,16 +123,40 @@ fn main() -> io::Result<()> {
                     current_identifier = "";
                 }
             },
-            '{' | '}' | '(' | ')' | '+' | '-' | ';' | '^' => {
+            '{' | '}' | '(' | ')' | ';' | '^' => {
                 if current_identifier != "" {
                     identifiers.push(Token::new(current_identifier));
                     current_identifier = "";
                 }
                 identifiers.push(Token::new(&c.to_string()));
             },
+            '+' => {
+                if current_identifier != "" {
+                    identifiers.push(Token::new(current_identifier));
+                }
+                current_identifier = "+";
+            },
+            '-' => {
+                if current_identifier != "" {
+                    identifiers.push(Token::new(current_identifier));
+                }
+                current_identifier = "-";
+            },
             '=' => {
                 if current_identifier == "=" {
                     identifiers.push(Token::DoubleEqual);
+                    current_identifier = "";
+                    continue;
+                }
+
+                if current_identifier == "+" {
+                    identifiers.push(Token::AddAssign);
+                    current_identifier = "";
+                    continue;
+                }
+
+                if current_identifier == "-" {
+                    identifiers.push(Token::SubAssign);
                     current_identifier = "";
                     continue;
                 }
@@ -159,7 +187,7 @@ fn main() -> io::Result<()> {
             }
             _ => {
                 match current_identifier {
-                    "=" | "&" | "|" | "*" | "/" | "<" | ">" => {
+                    "=" | "&" | "|" | "*" | "/" | "<" | ">" | "+" | "-" => {
                         identifiers.push(Token::new(current_identifier));
                         current_identifier = "";
                     }

@@ -35,8 +35,7 @@ pub enum Token {
     BinaryAnd,
     BinaryOr,
     If,
-    Else,
-    SingleLineComment,
+    Else
 }
 
 impl Token {
@@ -71,7 +70,6 @@ impl Token {
             "|" => Token::BinaryOr,
             "&&" => Token::LogicalAnd,
             "||" => Token::LogicalOr,
-            "//" => Token::SingleLineComment,
             _ => {
                 Token::Identifier(token.to_owned())
             }
@@ -152,7 +150,7 @@ fn main() -> io::Result<()> {
     if current_identifier != "" {
         identifiers.push(Token::new(current_identifier));
     }
-    
+
     println!("{:?}", identifiers);
 
     Ok(())

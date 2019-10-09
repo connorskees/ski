@@ -1,5 +1,6 @@
 #![deny(missing_debug_implementations)]
 use std::io::{self, Read, BufReader, stdin};
+use regex::Regex;
     // let input = if let Ok(ss) = String::from_utf8(input_) { ss } else { String::new() };
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -53,6 +54,7 @@ impl Token {
                 Token::Identifier(token.to_owned())
             }
         }
+        // let x = Regex::new();
     }
 }
 

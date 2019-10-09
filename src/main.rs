@@ -34,6 +34,7 @@ pub enum Token {
     LtEq,
     Shr,
     Shl,
+    Xor,
     LogicalAnd,
     LogicalOr,
     BinaryAnd,
@@ -72,6 +73,7 @@ impl Token {
             "<" => Token::Lt,
             ">>" => Token::Shr,
             "<<" => Token::Shl,
+            "^" => Token::Xor,
             "&" => Token::BinaryAnd,
             "|" => Token::BinaryOr,
             "&&" => Token::LogicalAnd,
@@ -117,7 +119,7 @@ fn main() -> io::Result<()> {
                     current_identifier = "";
                 }
             },
-            '{' | '}' | '(' | ')' | '+' | '-' | ';' => {
+            '{' | '}' | '(' | ')' | '+' | '-' | ';' | '^' => {
                 if current_identifier != "" {
                     identifiers.push(Token::new(current_identifier));
                     current_identifier = "";

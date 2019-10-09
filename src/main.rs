@@ -105,7 +105,7 @@ fn main() -> io::Result<()> {
 
     for c in input.chars() {
         match c {
-            ' ' | '\r' | '\n' => {
+            ' ' | '\r' | '\n' | '\t' => {
                 if current_identifier != "" {
                     identifiers.push(Token::new(current_identifier));
                     current_identifier = "";

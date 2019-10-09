@@ -17,20 +17,31 @@ pub enum Token {
     While,
     Loop,
     SemiColon,
-    Equals,
+    DoubleEqual,
+    Equal,
     Add,
     Sub,
     Mul,
     Div,
+    Pow,
     SingleQuote,
     DoubleQuote,
     Return,
-    Integer(u32)
+    Integer(u32),
+    Gt,
+    Lt,
+    LogicalAnd,
+    LogicalOr,
+    BinaryAnd,
+    BinaryOr,
+    If,
+    Else,
+    SingleLineComment,
 }
 
 impl Token {
-    pub fn new(token: String) -> Token {
-        match token.as_ref() {
+    pub fn new(token: &str) -> Token {
+        match token {
             "{" => Token::OpenBracket,
             "}" => Token::CloseBracket,
             "fn" => Token::Function,
@@ -42,7 +53,10 @@ impl Token {
             "while" => Token::While,
             "loop" => Token::Loop,
             "return" => Token::Return,
-            "=" => Token::Equals,
+            "if" => Token::If,
+            "else" => Token::Else,
+            "=" => Token::Equal,
+            "==" => Token::DoubleEqual,
             ";" => Token::SemiColon,
             "'" => Token::SingleQuote,
             "\"" => Token::DoubleQuote,
@@ -50,11 +64,34 @@ impl Token {
             "-" => Token::Sub,
             "*" => Token::Mul,
             "/" => Token::Div,
+            "**" => Token::Pow,
+            ">" => Token::Gt,
+            "<" => Token::Lt,
+            "&" => Token::BinaryAnd,
+            "|" => Token::BinaryOr,
+            "&&" => Token::LogicalAnd,
+            "||" => Token::LogicalOr,
+            "//" => Token::SingleLineComment,
             _ => {
                 Token::Identifier(token.to_owned())
             }
         }
-        // let x = Regex::new();
+    }
+}
+
+macro_rules! double_identifier {
+    ( $i:literal, $cur:ident, $idents:ident ) => {
+        if $cur == $i {
+            $idents.push(Token::new(concat!($i, $i)));
+            $cur = "";
+            continue;
+        }
+        
+        if $cur != "" {
+            $idents.push(Token::new($cur));
+        }
+
+        $cur = $i;
     }
 }
 
@@ -62,32 +99,61 @@ fn main() -> io::Result<()> {
     let mut input = String::new();
     stdin().read_line(&mut input)?;
 
-    let mut indentifiers: Vec<Token> = Vec::with_capacity(40);
+    let mut identifiers: Vec<Token> = Vec::with_capacity(40);
 
-    let mut current_indentifier: String = String::new();
+    let mut ci: String;
+
+    let mut current_identifier: &str = "";
 
     for c in input.chars() {
         match c {
-            ' ' => {
-                if current_indentifier != String::new() {
-                    indentifiers.push(Token::new(current_indentifier));
-                    current_indentifier = String::new();
+            ' ' | '\r' | '\n' => {
+                if current_identifier != "" {
+                    identifiers.push(Token::new(current_identifier));
+                    current_identifier = "";
                 }
             },
-            '{' | '}' | '(' | ')' | '+' | '-' | ';' | '*' | '/' => {
-                if current_indentifier != String::new() {
-                    indentifiers.push(Token::new(current_indentifier));
-                    current_indentifier = String::new();
+            '{' | '}' | '(' | ')' | '+' | '-' | ';' | '>' | '<' => {
+                if current_identifier != "" {
+                    identifiers.push(Token::new(current_identifier));
+                    current_identifier = "";
                 }
-                indentifiers.push(Token::new(c.to_string()));
+                identifiers.push(Token::new(&c.to_string()));
             },
+            '=' => {
+                double_identifier!("=", current_identifier, identifiers);
+            }
+            '&' => {
+                double_identifier!("&", current_identifier, identifiers);
+            }
+            '|' => {
+                double_identifier!("|", current_identifier, identifiers);
+            }
+            '*' => {
+                double_identifier!("*", current_identifier, identifiers);
+            }
+            '/' => {
+                double_identifier!("/", current_identifier, identifiers);
+            }
             _ => {
-                current_indentifier += &c.to_string();
+                match current_identifier {
+                    "=" | "&" | "|" | "*" | "/" => {
+                        identifiers.push(Token::new(current_identifier));
+                        current_identifier = "";
+                    }
+                    _ => {}
+                }
+                ci = format!("{}{}", current_identifier, c);
+                current_identifier = ci.as_ref();
             }
         }
-        // println!("{:?}", c, indentifiers);
     }
-    println!("{:?}", indentifiers);
+
+    if current_identifier != "" {
+        identifiers.push(Token::new(current_identifier));
+    }
+    
+    println!("{:?}", identifiers);
 
     Ok(())
 }

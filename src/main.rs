@@ -26,6 +26,9 @@ pub enum Token {
     Pow,
     AddAssign,
     SubAssign,
+    MulAssign,
+    DivAssign,
+    PowAssign,
     SingleQuote,
     DoubleQuote,
     Return,
@@ -163,6 +166,18 @@ fn main() -> io::Result<()> {
                     continue;
                 }
 
+                if current_identifier == "*" {
+                    identifiers.push(Token::MulAssign);
+                    current_identifier = "";
+                    continue;
+                }
+
+                if current_identifier == "/" {
+                    identifiers.push(Token::DivAssign);
+                    current_identifier = "";
+                    continue;
+                }
+
                 if current_identifier == "<" {
                     identifiers.push(Token::LtEq);
                     current_identifier = "";
@@ -174,6 +189,7 @@ fn main() -> io::Result<()> {
                     current_identifier = "";
                     continue;
                 }
+
 
                 
                 if current_identifier != "" {

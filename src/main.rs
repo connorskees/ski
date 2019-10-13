@@ -56,6 +56,12 @@ pub enum Token {
     Else
 }
 
+#[derive(Debug)]
+pub struct Lexer {
+    col: u16,
+    row: u16
+}
+
 impl Token {
     pub fn new(token: &str) -> Token {
         match token {
@@ -120,198 +126,205 @@ macro_rules! double_identifier {
     }
 }
 
+impl Lexer {
+    pub fn lex(input: String) -> Vec<Token> {
+        let mut tokens: Vec<Token> = Vec::with_capacity(40);
+
+        let mut ci: String;
+
+        let mut current_identifier: &str = "";
+
+        let mut literal = Literal::None;
+
+        let mut integer_base: u32 = 10;
+        let mut next_char_is_escaped = false;
+
+        for c in input.chars() {
+            match literal {
+                Literal::Str(_) => {
+                    if c == '"' {
+                        tokens.push(Token::Literal(Literal::Str(current_identifier.to_owned())));
+                        current_identifier = "";
+                        literal = Literal::None;
+                        continue;
+                    }
+
+                    ci = format!("{}{}", current_identifier, c);
+                    current_identifier = ci.as_ref();
+                    continue;
+                },
+                Literal::Int(_) => {
+                    match c {
+                        '0'..='9' => {
+                            ci = format!("{}{}", current_identifier, c);
+                            current_identifier = ci.as_ref();
+                            continue;
+                        },
+                        'a'..='f' | 'A'..='F' => {
+                            if integer_base == 16 {
+                                ci = format!("{}{}", current_identifier, c);
+                                current_identifier = ci.as_ref();
+                            } else {
+                                unimplemented!()
+                            }
+                            continue;
+                        }
+                        'x' => {
+                            if current_identifier.len() == 1 {
+                                current_identifier = "";
+                                integer_base = 16;
+                            } else {
+                                unimplemented!()
+                            }
+                            continue;
+                        },
+                        _ => {
+                            tokens.push(Token::Literal(Literal::Int(u64::from_str_radix(current_identifier, integer_base).unwrap())));
+                            integer_base = 10;
+                            current_identifier = "";
+                            literal = Literal::None;
+                        }
+                    } 
+                },
+                _ => {}
+            }
+
+            match c {
+                ' ' | '\r' | '\n' | '\t' => {
+                    if current_identifier != "" {
+                        tokens.push(Token::new(current_identifier));
+                        current_identifier = "";
+                    }
+                },
+                '{' | '}' | '(' | ')' | ';' | '^' => {
+                    if current_identifier != "" {
+                        tokens.push(Token::new(current_identifier));
+                        current_identifier = "";
+                    }
+                    tokens.push(Token::new(&c.to_string()));
+                },
+                '+' => {
+                    if current_identifier != "" {
+                        tokens.push(Token::new(current_identifier));
+                    }
+                    current_identifier = "+";
+                },
+                '-' => {
+                    if current_identifier != "" {
+                        tokens.push(Token::new(current_identifier));
+                    }
+                    current_identifier = "-";
+                },
+                '"' => {
+                    literal = Literal::Str(String::new());
+                    continue;
+                }
+                '=' => {
+                    if current_identifier == "=" {
+                        tokens.push(Token::DoubleEqual);
+                        current_identifier = "";
+                        continue;
+                    }
+
+                    if current_identifier == "+" {
+                        tokens.push(Token::AddAssign);
+                        current_identifier = "";
+                        continue;
+                    }
+
+                    if current_identifier == "-" {
+                        tokens.push(Token::SubAssign);
+                        current_identifier = "";
+                        continue;
+                    }
+
+                    if current_identifier == "*" {
+                        tokens.push(Token::MulAssign);
+                        current_identifier = "";
+                        continue;
+                    }
+
+                    if current_identifier == "/" {
+                        tokens.push(Token::DivAssign);
+                        current_identifier = "";
+                        continue;
+                    }
+
+                    if current_identifier == "<" {
+                        tokens.push(Token::LtEq);
+                        current_identifier = "";
+                        continue;
+                    }
+
+                    if current_identifier == ">" {
+                        tokens.push(Token::GtEq);
+                        current_identifier = "";
+                        continue;
+                    }
+
+
+                    
+                    if current_identifier != "" {
+                        tokens.push(Token::new(current_identifier));
+                    }
+
+                    current_identifier = "=";
+                }
+                '&' => {
+                    double_identifier!("&", current_identifier, tokens);
+                }
+                '|' => {
+                    double_identifier!("|", current_identifier, tokens);
+                }
+                '*' => {
+                    double_identifier!("*", current_identifier, tokens);
+                }
+                '/' => {
+                    double_identifier!("/", current_identifier, tokens);
+                }
+                '>' => {
+                    double_identifier!(">", current_identifier, tokens);
+                }
+                '<' => {
+                    double_identifier!("<", current_identifier, tokens);
+                }
+                '0'..='9' => {
+                    literal = Literal::Int(0);
+                    if current_identifier != "" {
+                        tokens.push(Token::new(current_identifier));
+                        current_identifier = "";
+                    }
+                    ci = format!("{}{}", current_identifier, c);
+                    current_identifier = ci.as_ref();
+            }
+                _ => {
+                    match current_identifier {
+                        "=" | "&" | "|" | "*" | "/" | "<" | ">" | "+" | "-" => {
+                            tokens.push(Token::new(current_identifier));
+                            current_identifier = "";
+                        }
+                        _ => {}
+                    }
+                    ci = format!("{}{}", current_identifier, c);
+                    current_identifier = ci.as_ref();
+                }
+            }
+        }
+
+        if current_identifier != "" {
+            tokens.push(Token::new(current_identifier));
+        }
+        tokens
+    }
+}
+
 fn main() -> io::Result<()> {
     let mut input = String::new();
     stdin().read_line(&mut input)?;
 
-    let mut identifiers: Vec<Token> = Vec::with_capacity(40);
+    let tokens = Lexer::lex(input);
 
-    let mut ci: String;
-
-    let mut current_identifier: &str = "";
-
-    let mut literal = Literal::None;
-
-    let mut integer_base: u32 = 10;
-    let mut next_char_is_escaped = false;
-
-    for c in input.chars() {
-        match literal {
-            Literal::Str(_) => {
-                if c == '"' {
-                    identifiers.push(Token::Literal(Literal::Str(current_identifier.to_owned())));
-                    current_identifier = "";
-                    literal = Literal::None;
-                    continue;
-                }
-
-                ci = format!("{}{}", current_identifier, c);
-                current_identifier = ci.as_ref();
-                continue;
-            },
-            Literal::Int(_) => {
-                match c {
-                    '0'..='9' => {
-                        ci = format!("{}{}", current_identifier, c);
-                        current_identifier = ci.as_ref();
-                        continue;
-                    },
-                    'a'..='f' | 'A'..='F' => {
-                        if integer_base == 16 {
-                            ci = format!("{}{}", current_identifier, c);
-                            current_identifier = ci.as_ref();
-                        } else {
-                            unimplemented!()
-                        }
-                        continue;
-                    }
-                    'x' => {
-                        if current_identifier.len() == 1 {
-                            current_identifier = "";
-                            integer_base = 16;
-                        } else {
-                            unimplemented!()
-                        }
-                        continue;
-                    },
-                    _ => {
-                        identifiers.push(Token::Literal(Literal::Int(u64::from_str_radix(current_identifier, integer_base).unwrap())));
-                        integer_base = 10;
-                        current_identifier = "";
-                        literal = Literal::None;
-                    }
-                } 
-            },
-            _ => {}
-        }
-
-        match c {
-            ' ' | '\r' | '\n' | '\t' => {
-                if current_identifier != "" {
-                    identifiers.push(Token::new(current_identifier));
-                    current_identifier = "";
-                }
-            },
-            '{' | '}' | '(' | ')' | ';' | '^' => {
-                if current_identifier != "" {
-                    identifiers.push(Token::new(current_identifier));
-                    current_identifier = "";
-                }
-                identifiers.push(Token::new(&c.to_string()));
-            },
-            '+' => {
-                if current_identifier != "" {
-                    identifiers.push(Token::new(current_identifier));
-                }
-                current_identifier = "+";
-            },
-            '-' => {
-                if current_identifier != "" {
-                    identifiers.push(Token::new(current_identifier));
-                }
-                current_identifier = "-";
-            },
-            '"' => {
-                literal = Literal::Str(String::new());
-                continue;
-            }
-            '=' => {
-                if current_identifier == "=" {
-                    identifiers.push(Token::DoubleEqual);
-                    current_identifier = "";
-                    continue;
-                }
-
-                if current_identifier == "+" {
-                    identifiers.push(Token::AddAssign);
-                    current_identifier = "";
-                    continue;
-                }
-
-                if current_identifier == "-" {
-                    identifiers.push(Token::SubAssign);
-                    current_identifier = "";
-                    continue;
-                }
-
-                if current_identifier == "*" {
-                    identifiers.push(Token::MulAssign);
-                    current_identifier = "";
-                    continue;
-                }
-
-                if current_identifier == "/" {
-                    identifiers.push(Token::DivAssign);
-                    current_identifier = "";
-                    continue;
-                }
-
-                if current_identifier == "<" {
-                    identifiers.push(Token::LtEq);
-                    current_identifier = "";
-                    continue;
-                }
-
-                if current_identifier == ">" {
-                    identifiers.push(Token::GtEq);
-                    current_identifier = "";
-                    continue;
-                }
-
-
-                
-                if current_identifier != "" {
-                    identifiers.push(Token::new(current_identifier));
-                }
-
-                current_identifier = "=";
-            }
-            '&' => {
-                double_identifier!("&", current_identifier, identifiers);
-            }
-            '|' => {
-                double_identifier!("|", current_identifier, identifiers);
-            }
-            '*' => {
-                double_identifier!("*", current_identifier, identifiers);
-            }
-            '/' => {
-                double_identifier!("/", current_identifier, identifiers);
-            }
-            '>' => {
-                double_identifier!(">", current_identifier, identifiers);
-            }
-            '<' => {
-                double_identifier!("<", current_identifier, identifiers);
-            }
-            '0'..='9' => {
-                literal = Literal::Int(0);
-                if current_identifier != "" {
-                    identifiers.push(Token::new(current_identifier));
-                    current_identifier = "";
-                }
-                ci = format!("{}{}", current_identifier, c);
-                current_identifier = ci.as_ref();
-           }
-            _ => {
-                match current_identifier {
-                    "=" | "&" | "|" | "*" | "/" | "<" | ">" | "+" | "-" => {
-                        identifiers.push(Token::new(current_identifier));
-                        current_identifier = "";
-                    }
-                    _ => {}
-                }
-                ci = format!("{}{}", current_identifier, c);
-                current_identifier = ci.as_ref();
-            }
-        }
-    }
-
-    if current_identifier != "" {
-        identifiers.push(Token::new(current_identifier));
-    }
-
-    println!("{:?}", identifiers);
+    println!("{:?}", tokens);
 
     Ok(())
 }

@@ -132,6 +132,9 @@ fn main() -> io::Result<()> {
 
     let mut literal = Literal::None;
 
+    let mut is_hex = false;
+    let mut next_char_is_escaped = false;
+
     for c in input.chars() {
         match literal {
             Literal::Str(_) => {
@@ -147,6 +150,31 @@ fn main() -> io::Result<()> {
                 continue;
             },
             Literal::Int(_) => {
+                match c {
+                    '0'..='9' => {
+                        ci = format!("{}{}", current_identifier, c);
+                        current_identifier = ci.as_ref();
+                    },
+                    'x' => {
+                        if current_identifier.len() == 1 {
+                            current_identifier = "";
+                            is_hex = true;
+                        } else {
+                            unimplemented!()
+                        }
+                    },
+                    _ => {
+                        if is_hex {
+                            identifiers.push(Token::Literal(Literal::Int(u64::from_str_radix(current_identifier, 16).unwrap())));
+                            is_hex = false;
+                        } else {
+                            identifiers.push(Token::Literal(Literal::Int(current_identifier.parse().unwrap())));
+                        }
+                        current_identifier = "";
+                        literal = Literal::None;
+                    }
+                } 
+                continue;
             },
             _ => {}
         }
@@ -250,6 +278,15 @@ fn main() -> io::Result<()> {
             '<' => {
                 double_identifier!("<", current_identifier, identifiers);
             }
+            '0'..='9' => {
+                literal = Literal::Int(0);
+                if current_identifier != "" {
+                    identifiers.push(Token::new(current_identifier));
+                    current_identifier = "";
+                }
+                ci = format!("{}{}", current_identifier, c);
+                current_identifier = ci.as_ref();
+           }
             _ => {
                 match current_identifier {
                     "=" | "&" | "|" | "*" | "/" | "<" | ">" | "+" | "-" => {

@@ -4,8 +4,17 @@ use regex::Regex;
     // let input = if let Ok(ss) = String::from_utf8(input_) { ss } else { String::new() };
 
 #[derive(Debug, Hash, Eq, PartialEq)]
+pub enum Literal {
+    Str(String),
+    Int(u64),
+    Bool(bool),
+    None
+}
+
+#[derive(Debug, Hash, Eq, PartialEq)]
 pub enum Token {
     Identifier(String),
+    Literal(Literal),
     OpenBracket,
     CloseBracket,
     Function,
@@ -32,7 +41,6 @@ pub enum Token {
     SingleQuote,
     DoubleQuote,
     Return,
-    Integer(u32),
     Gt,
     Lt,
     GtEq,
@@ -87,6 +95,8 @@ impl Token {
             "|" => Token::BinaryOr,
             "&&" => Token::LogicalAnd,
             "||" => Token::LogicalOr,
+            "true" => Token::Literal(Literal::Bool(true)),
+            "false" => Token::Literal(Literal::Bool(false)),
             _ => {
                 Token::Identifier(token.to_owned())
             }
@@ -120,7 +130,27 @@ fn main() -> io::Result<()> {
 
     let mut current_identifier: &str = "";
 
+    let mut literal = Literal::None;
+
     for c in input.chars() {
+        match literal {
+            Literal::Str(_) => {
+                if c == '"' {
+                    identifiers.push(Token::Literal(Literal::Str(current_identifier.to_owned())));
+                    current_identifier = "";
+                    literal = Literal::None;
+                    continue;
+                }
+
+                ci = format!("{}{}", current_identifier, c);
+                current_identifier = ci.as_ref();
+                continue;
+            },
+            Literal::Int(_) => {
+            },
+            _ => {}
+        }
+
         match c {
             ' ' | '\r' | '\n' | '\t' => {
                 if current_identifier != "" {
@@ -147,6 +177,10 @@ fn main() -> io::Result<()> {
                 }
                 current_identifier = "-";
             },
+            '"' => {
+                literal = Literal::Str(String::new());
+                continue;
+            }
             '=' => {
                 if current_identifier == "=" {
                     identifiers.push(Token::DoubleEqual);

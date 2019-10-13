@@ -132,7 +132,7 @@ fn main() -> io::Result<()> {
 
     let mut literal = Literal::None;
 
-    let mut is_hex = false;
+    let mut integer_base: u32 = 10;
     let mut next_char_is_escaped = false;
 
     for c in input.chars() {
@@ -154,27 +154,33 @@ fn main() -> io::Result<()> {
                     '0'..='9' => {
                         ci = format!("{}{}", current_identifier, c);
                         current_identifier = ci.as_ref();
+                        continue;
                     },
-                    'x' => {
-                        if current_identifier.len() == 1 {
-                            current_identifier = "";
-                            is_hex = true;
+                    'a'..='f' | 'A'..='F' => {
+                        if integer_base == 16 {
+                            ci = format!("{}{}", current_identifier, c);
+                            current_identifier = ci.as_ref();
                         } else {
                             unimplemented!()
                         }
+                        continue;
+                    }
+                    'x' => {
+                        if current_identifier.len() == 1 {
+                            current_identifier = "";
+                            integer_base = 16;
+                        } else {
+                            unimplemented!()
+                        }
+                        continue;
                     },
                     _ => {
-                        if is_hex {
-                            identifiers.push(Token::Literal(Literal::Int(u64::from_str_radix(current_identifier, 16).unwrap())));
-                            is_hex = false;
-                        } else {
-                            identifiers.push(Token::Literal(Literal::Int(current_identifier.parse().unwrap())));
-                        }
+                        identifiers.push(Token::Literal(Literal::Int(u64::from_str_radix(current_identifier, integer_base).unwrap())));
+                        integer_base = 10;
                         current_identifier = "";
                         literal = Literal::None;
                     }
                 } 
-                continue;
             },
             _ => {}
         }

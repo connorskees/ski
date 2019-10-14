@@ -130,12 +130,18 @@ impl Lexer {
         }
     }
 
-    pub fn strip_comments(input: String) -> Result<String, regex::Error> {
-        let single_line = regex::Regex::new(r"//[^\n\r]*");
-        unimplemented!()
+    pub fn strip_comments(input: &str) -> Result<String, regex::Error> {
+        let single_line = regex::Regex::new(r"//[^\n\r]*")?;
+        let multi_line = regex::Regex::new(r"/\*[^*]*\*+(?:[^/*][^*]*\*+)*/")?;
+
+        Ok(
+            multi_line.replace_all(
+                single_line.replace_all(input, "").to_mut(), ""
+            ).to_mut().to_string())
     }
 
-    pub fn lex(&mut self, input: String) -> Vec<Token> {
+    pub fn lex(&mut self, s: &str) -> Result<Vec<Token>, regex::Error> {
+        let input = Lexer::strip_comments(s)?;
         let mut tokens: Vec<Token> = Vec::with_capacity(40);
 
         let mut ci: String;
@@ -331,6 +337,6 @@ impl Lexer {
         if current_identifier != "" {
             tokens.push(Token::new(current_identifier));
         }
-        tokens
+        Ok(tokens)
     }
 }

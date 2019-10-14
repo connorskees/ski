@@ -10,7 +10,7 @@ fn main() -> io::Result<()> {
     let mut lexer = Lexer::new();
     stdin().read_line(&mut input)?;
 
-    let tokens = lexer.lex(input);
+    let tokens = lexer.lex(&input);
 
     println!("{:?}", tokens);
 

@@ -127,7 +127,14 @@ macro_rules! double_identifier {
 }
 
 impl Lexer {
-    pub fn lex(input: String) -> Vec<Token> {
+    pub fn new() -> Lexer {
+        Lexer {
+            row: 0,
+            col: 0
+        }
+    }
+
+    pub fn lex(&mut self, input: String) -> Vec<Token> {
         let mut tokens: Vec<Token> = Vec::with_capacity(40);
 
         let mut ci: String;
@@ -140,6 +147,7 @@ impl Lexer {
         let mut next_char_is_escaped = false;
 
         for c in input.chars() {
+            self.col += 1;
             match literal {
                 Literal::Str(_) => {
                     if c == '"' {
@@ -190,12 +198,20 @@ impl Lexer {
             }
 
             match c {
-                ' ' | '\r' | '\n' | '\t' => {
+                ' ' | '\r' | '\t' => {
                     if current_identifier != "" {
                         tokens.push(Token::new(current_identifier));
                         current_identifier = "";
                     }
                 },
+                '\n' => {
+                    if current_identifier != "" {
+                        tokens.push(Token::new(current_identifier));
+                        current_identifier = "";
+                    }
+                    self.row += 1;
+                    self.col = 0;
+                }
                 '{' | '}' | '(' | ')' | ';' | '^' => {
                     if current_identifier != "" {
                         tokens.push(Token::new(current_identifier));
@@ -320,9 +336,10 @@ impl Lexer {
 
 fn main() -> io::Result<()> {
     let mut input = String::new();
+    let mut lexer = Lexer::new();
     stdin().read_line(&mut input)?;
 
-    let tokens = Lexer::lex(input);
+    let tokens = lexer.lex(input);
 
     println!("{:?}", tokens);
 

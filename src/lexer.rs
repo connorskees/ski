@@ -15,20 +15,28 @@ pub enum LiteralType {
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-pub enum Token {
-    Identifier(String),
-    Literal(Literal),
-    OpenBracket,
-    CloseBracket,
+pub enum Keyword {
     Function,
-    OpenParen,
-    CloseParen,
     Let,
     Const,
     For,
     In,
     While,
     Loop,
+    Return,
+    If,
+    Else
+}
+
+#[derive(Debug, Hash, Eq, PartialEq)]
+pub enum Token {
+    Identifier(String),
+    Literal(Literal),
+    Keyword(Keyword),
+    OpenBracket,
+    CloseBracket,
+    OpenParen,
+    CloseParen,
     SemiColon,
     DoubleEqual,
     Equal,
@@ -43,7 +51,6 @@ pub enum Token {
     DivAssign,
     SingleQuote,
     DoubleQuote,
-    Return,
     Gt,
     Lt,
     GtEq,
@@ -55,8 +62,6 @@ pub enum Token {
     LogicalOr,
     BinaryAnd,
     BinaryOr,
-    If,
-    Else
 }
 
 #[derive(Debug)]
@@ -68,20 +73,20 @@ pub struct Lexer {
 impl Token {
     pub fn new(token: &str) -> Token {
         match token {
+            "fn" => Token::Keyword(Keyword::Function),
+            "let" => Token::Keyword(Keyword::Let),
+            "const" => Token::Keyword(Keyword::Const),
+            "for" => Token::Keyword(Keyword::For),
+            "while" => Token::Keyword(Keyword::While),
+            "loop" => Token::Keyword(Keyword::Loop),
+            "return" => Token::Keyword(Keyword::Return),
+            "if" => Token::Keyword(Keyword::If),
+            "else" => Token::Keyword(Keyword::Else),
+            "in" => Token::Keyword(Keyword::In),
             "{" => Token::OpenBracket,
             "}" => Token::CloseBracket,
-            "fn" => Token::Function,
             "(" => Token::OpenParen,
             ")" => Token::CloseParen,
-            "let" => Token::Let,
-            "const" => Token::Const,
-            "for" => Token::For,
-            "while" => Token::While,
-            "loop" => Token::Loop,
-            "return" => Token::Return,
-            "if" => Token::If,
-            "else" => Token::Else,
-            "in" => Token::In,
             "=" => Token::Equal,
             "==" => Token::DoubleEqual,
             ";" => Token::SemiColon,
@@ -327,7 +332,7 @@ impl Lexer {
                     }
                     ci = format!("{}{}", current_identifier, c);
                     current_identifier = ci.as_ref();
-            }
+                }
                 _ => {
                     match current_identifier {
                         "=" | "&" | "|" | "*" | "/" | "<" | ">" | "+" | "-" => {
@@ -368,15 +373,15 @@ mod test {
         let mut lexer = Lexer::new();
         assert_eq!(
             lexer.lex("fn hi(){if 1==1{print(\"hi\");}}").unwrap(),
-            vec!(Function, Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, If, Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, Token::Keyword(super::Keyword::If), Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
         );
         assert_eq!(
             lexer.lex("fn hi() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}").unwrap(),
-            vec!(Function, Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, If, Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, Token::Keyword(super::Keyword::If), Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
         );
         assert_eq!(
             lexer.lex("/**/fn hi/**//**/() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}// aje=  df d").unwrap(),
-            vec!(Function, Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, If, Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, Token::Keyword(super::Keyword::If), Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
         );
         assert_eq!(
             lexer.lex("1+1").unwrap(),
@@ -392,7 +397,7 @@ mod test {
         );
         assert_eq!(
             lexer.lex("let x = 1 + 1;").unwrap(),
-            vec!(Let, Identifier(String::from("x")), Equal, Literal(Int(1)), Add, Literal(Int(1)), SemiColon)
+            vec!(Token::Keyword(super::Keyword::Let), Identifier(String::from("x")), Equal, Literal(Int(1)), Add, Literal(Int(1)), SemiColon)
         );
         assert_eq!(
             lexer.lex("\"hi\"").unwrap(),
@@ -400,15 +405,15 @@ mod test {
         );
         assert_eq!(
             lexer.lex("fn func()").unwrap(),
-            vec!(Function, Identifier(String::from("func")), OpenParen, CloseParen)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), OpenParen, CloseParen)
         );
          assert_eq!(
             lexer.lex("fn func ()").unwrap(),
-            vec!(Function, Identifier(String::from("func")), OpenParen, CloseParen)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), OpenParen, CloseParen)
         );
          assert_eq!(
             lexer.lex("fn func (  )").unwrap(),
-            vec!(Function, Identifier(String::from("func")), OpenParen, CloseParen)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), OpenParen, CloseParen)
         );
         assert_eq!(
             lexer.lex("| |").unwrap(),

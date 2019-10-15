@@ -29,10 +29,7 @@ pub enum Keyword {
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-pub enum Token {
-    Identifier(String),
-    Literal(Literal),
-    Keyword(Keyword),
+pub enum Symbol {
     OpenBracket,
     CloseBracket,
     OpenParen,
@@ -64,6 +61,14 @@ pub enum Token {
     BinaryOr,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq)]
+pub enum Token {
+    Identifier(String),
+    Literal(Literal),
+    Keyword(Keyword),
+    Symbol(Symbol)
+}
+
 #[derive(Debug)]
 pub struct Lexer {
     col: u16,
@@ -83,33 +88,33 @@ impl Token {
             "if" => Token::Keyword(Keyword::If),
             "else" => Token::Keyword(Keyword::Else),
             "in" => Token::Keyword(Keyword::In),
-            "{" => Token::OpenBracket,
-            "}" => Token::CloseBracket,
-            "(" => Token::OpenParen,
-            ")" => Token::CloseParen,
-            "=" => Token::Equal,
-            "==" => Token::DoubleEqual,
-            ";" => Token::SemiColon,
-            "'" => Token::SingleQuote,
-            "\"" => Token::DoubleQuote,
-            "+" => Token::Add,
-            "-" => Token::Sub,
-            "*" => Token::Mul,
-            "/" => Token::Div,
-            "**" => Token::Pow,
-            "+=" => Token::AddAssign,
-            "-=" => Token::SubAssign,
-            ">" => Token::Gt,
-            "<" => Token::Lt,
-            ">=" => Token::GtEq,
-            "<=" => Token::LtEq,
-            ">>" => Token::Shr,
-            "<<" => Token::Shl,
-            "^" => Token::Xor,
-            "&" => Token::BinaryAnd,
-            "|" => Token::BinaryOr,
-            "&&" => Token::LogicalAnd,
-            "||" => Token::LogicalOr,
+            "{" => Token::Symbol(Symbol::OpenBracket),
+            "}" => Token::Symbol(Symbol::CloseBracket),
+            "(" => Token::Symbol(Symbol::OpenParen),
+            ")" => Token::Symbol(Symbol::CloseParen),
+            "=" => Token::Symbol(Symbol::Equal),
+            "==" => Token::Symbol(Symbol::DoubleEqual),
+            ";" => Token::Symbol(Symbol::SemiColon),
+            "'" => Token::Symbol(Symbol::SingleQuote),
+            "\"" => Token::Symbol(Symbol::DoubleQuote),
+            "+" => Token::Symbol(Symbol::Add),
+            "-" => Token::Symbol(Symbol::Sub),
+            "*" => Token::Symbol(Symbol::Mul),
+            "/" => Token::Symbol(Symbol::Div),
+            "**" => Token::Symbol(Symbol::Pow),
+            "+=" => Token::Symbol(Symbol::AddAssign),
+            "-=" => Token::Symbol(Symbol::SubAssign),
+            ">" => Token::Symbol(Symbol::Gt),
+            "<" => Token::Symbol(Symbol::Lt),
+            ">=" => Token::Symbol(Symbol::GtEq),
+            "<=" => Token::Symbol(Symbol::LtEq),
+            ">>" => Token::Symbol(Symbol::Shr),
+            "<<" => Token::Symbol(Symbol::Shl),
+            "^" => Token::Symbol(Symbol::Xor),
+            "&" => Token::Symbol(Symbol::BinaryAnd),
+            "|" => Token::Symbol(Symbol::BinaryOr),
+            "&&" => Token::Symbol(Symbol::LogicalAnd),
+            "||" => Token::Symbol(Symbol::LogicalOr),
             "true" => Token::Literal(Literal::Bool(true)),
             "false" => Token::Literal(Literal::Bool(false)),
             _ => {
@@ -257,43 +262,43 @@ impl Lexer {
                 }
                 '=' => {
                     if current_identifier == "=" {
-                        tokens.push(Token::DoubleEqual);
+                        tokens.push(Token::Symbol(Symbol::DoubleEqual));
                         current_identifier = "";
                         continue;
                     }
 
                     if current_identifier == "+" {
-                        tokens.push(Token::AddAssign);
+                        tokens.push(Token::Symbol(Symbol::AddAssign));
                         current_identifier = "";
                         continue;
                     }
 
                     if current_identifier == "-" {
-                        tokens.push(Token::SubAssign);
+                        tokens.push(Token::Symbol(Symbol::SubAssign));
                         current_identifier = "";
                         continue;
                     }
 
                     if current_identifier == "*" {
-                        tokens.push(Token::MulAssign);
+                        tokens.push(Token::Symbol(Symbol::MulAssign));
                         current_identifier = "";
                         continue;
                     }
 
                     if current_identifier == "/" {
-                        tokens.push(Token::DivAssign);
+                        tokens.push(Token::Symbol(Symbol::DivAssign));
                         current_identifier = "";
                         continue;
                     }
 
                     if current_identifier == "<" {
-                        tokens.push(Token::LtEq);
+                        tokens.push(Token::Symbol(Symbol::LtEq));
                         current_identifier = "";
                         continue;
                     }
 
                     if current_identifier == ">" {
-                        tokens.push(Token::GtEq);
+                        tokens.push(Token::Symbol(Symbol::GtEq));
                         current_identifier = "";
                         continue;
                     }
@@ -368,36 +373,37 @@ mod test {
     use super::*;
     use Token::*;
     use super::Literal::*;
+    use super::Symbol::*;
     #[test]
     fn test() {
         let mut lexer = Lexer::new();
         assert_eq!(
             lexer.lex("fn hi(){if 1==1{print(\"hi\");}}").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, Token::Keyword(super::Keyword::If), Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), Token::Symbol(OpenParen), Token::Symbol(CloseParen), Token::Symbol(OpenBracket), Token::Keyword(super::Keyword::If), Literal(Int(1)), Token::Symbol(DoubleEqual), Literal(Int(1)), Token::Symbol(OpenBracket), Identifier(String::from("print")), Token::Symbol(OpenParen), Literal(Str(String::from("hi"))), Token::Symbol(CloseParen), Token::Symbol(SemiColon), Token::Symbol(CloseBracket), Token::Symbol(CloseBracket))
         );
         assert_eq!(
             lexer.lex("fn hi() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, Token::Keyword(super::Keyword::If), Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), Token::Symbol(OpenParen), Token::Symbol(CloseParen), Token::Symbol(OpenBracket), Token::Keyword(super::Keyword::If), Literal(Int(1)), Token::Symbol(DoubleEqual), Literal(Int(1)), Token::Symbol(OpenBracket), Identifier(String::from("print")), Token::Symbol(OpenParen), Literal(Str(String::from("hi"))), Token::Symbol(CloseParen), Token::Symbol(SemiColon), Token::Symbol(CloseBracket), Token::Symbol(CloseBracket))
         );
         assert_eq!(
             lexer.lex("/**/fn hi/**//**/() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}// aje=  df d").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, Token::Keyword(super::Keyword::If), Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), Token::Symbol(OpenParen), Token::Symbol(CloseParen), Token::Symbol(OpenBracket), Token::Keyword(super::Keyword::If), Literal(Int(1)), Token::Symbol(DoubleEqual), Literal(Int(1)), Token::Symbol(OpenBracket), Identifier(String::from("print")), Token::Symbol(OpenParen), Literal(Str(String::from("hi"))), Token::Symbol(CloseParen), Token::Symbol(SemiColon), Token::Symbol(CloseBracket), Token::Symbol(CloseBracket))
         );
         assert_eq!(
             lexer.lex("1+1").unwrap(),
-            vec!(Literal(Int(1)), Add, Literal(Int(1)))
+            vec!(Literal(Int(1)), Token::Symbol(Add), Literal(Int(1)))
         );
         assert_eq!(
             lexer.lex("1+1 ").unwrap(),
-            vec!(Literal(Int(1)), Add, Literal(Int(1)))
+            vec!(Literal(Int(1)), Token::Symbol(Add), Literal(Int(1)))
         );
         assert_eq!(
             lexer.lex("1 + 1").unwrap(),
-            vec!(Literal(Int(1)), Add, Literal(Int(1)))
+            vec!(Literal(Int(1)), Token::Symbol(Add), Literal(Int(1)))
         );
         assert_eq!(
             lexer.lex("let x = 1 + 1;").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Let), Identifier(String::from("x")), Equal, Literal(Int(1)), Add, Literal(Int(1)), SemiColon)
+            vec!(Token::Keyword(super::Keyword::Let), Identifier(String::from("x")), Token::Symbol(Equal), Literal(Int(1)), Token::Symbol(Add), Literal(Int(1)), Token::Symbol(SemiColon))
         );
         assert_eq!(
             lexer.lex("\"hi\"").unwrap(),
@@ -405,15 +411,15 @@ mod test {
         );
         assert_eq!(
             lexer.lex("fn func()").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), OpenParen, CloseParen)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), Token::Symbol(OpenParen), Token::Symbol(CloseParen))
         );
          assert_eq!(
             lexer.lex("fn func ()").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), OpenParen, CloseParen)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), Token::Symbol(OpenParen), Token::Symbol(CloseParen))
         );
          assert_eq!(
             lexer.lex("fn func (  )").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), OpenParen, CloseParen)
+            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), Token::Symbol(OpenParen), Token::Symbol(CloseParen))
         );
         assert_eq!(
             lexer.lex("| |").unwrap(),

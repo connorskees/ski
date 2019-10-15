@@ -398,5 +398,22 @@ mod test {
             lexer.lex("\"hi\"").unwrap(),
             vec!(Literal(Str(String::from("hi"))))
         );
+        assert_eq!(
+            lexer.lex("fn func()").unwrap(),
+            vec!(Function, Identifier(String::from("func")), OpenParen, CloseParen)
+        );
+         assert_eq!(
+            lexer.lex("fn func ()").unwrap(),
+            vec!(Function, Identifier(String::from("func")), OpenParen, CloseParen)
+        );
+         assert_eq!(
+            lexer.lex("fn func (  )").unwrap(),
+            vec!(Function, Identifier(String::from("func")), OpenParen, CloseParen)
+        );
+        assert_eq!(
+            lexer.lex("| |").unwrap(),
+            vec!(BinaryOr, BinaryOr)
+        );
+      
     }
 }

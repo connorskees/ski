@@ -378,5 +378,25 @@ mod test {
             lexer.lex("/**/fn hi/**//**/() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}// aje=  df d").unwrap(),
             vec!(Function, Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, If, Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
         );
+        assert_eq!(
+            lexer.lex("1+1").unwrap(),
+            vec!(Literal(Int(1)), Add, Literal(Int(1)))
+        );
+        assert_eq!(
+            lexer.lex("1+1 ").unwrap(),
+            vec!(Literal(Int(1)), Add, Literal(Int(1)))
+        );
+        assert_eq!(
+            lexer.lex("1 + 1").unwrap(),
+            vec!(Literal(Int(1)), Add, Literal(Int(1)))
+        );
+        assert_eq!(
+            lexer.lex("let x = 1 + 1;").unwrap(),
+            vec!(Let, Identifier(String::from("x")), Equal, Literal(Int(1)), Add, Literal(Int(1)), SemiColon)
+        );
+        assert_eq!(
+            lexer.lex("\"hi\"").unwrap(),
+            vec!(Literal(Str(String::from("hi"))))
+        );
     }
 }

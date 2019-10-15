@@ -341,9 +341,18 @@ impl Lexer {
                 }
             }
         }
-
-        if current_identifier != "" {
-            tokens.push(Token::new(current_identifier));
+        match literal {
+            LiteralType::Int => {
+                tokens.push(Token::Literal(Literal::Int(u64::from_str_radix(current_identifier, integer_base).unwrap())));
+            }
+            LiteralType::Str => {
+                tokens.push(Token::Literal(Literal::Str(current_identifier.to_owned())));
+            }
+            _ => {
+                if current_identifier != "" {
+                    tokens.push(Token::new(current_identifier));
+                }
+            }
         }
         Ok(tokens)
     }

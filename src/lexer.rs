@@ -159,7 +159,7 @@ impl Lexer {
         let mut literal = LiteralType::None;
 
         let mut integer_base: u32 = 10;
-        let mut next_char_is_escaped = false;
+        // let mut next_char_is_escaped = false;
 
         for c in input.chars() {
             self.col += 1;

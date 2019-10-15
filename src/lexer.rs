@@ -5,6 +5,12 @@ pub enum Literal {
     Str(String),
     Int(u64),
     Bool(bool),
+}
+
+#[derive(Debug, Hash, Eq, PartialEq)]
+pub enum LiteralType {
+    Str,
+    Int,
     None
 }
 
@@ -150,7 +156,7 @@ impl Lexer {
 
         let mut current_identifier: &str = "";
 
-        let mut literal = Literal::None;
+        let mut literal = LiteralType::None;
 
         let mut integer_base: u32 = 10;
         let mut next_char_is_escaped = false;
@@ -158,11 +164,11 @@ impl Lexer {
         for c in input.chars() {
             self.col += 1;
             match literal {
-                Literal::Str(_) => {
+                LiteralType::Str => {
                     if c == '"' {
                         tokens.push(Token::Literal(Literal::Str(current_identifier.to_owned())));
                         current_identifier = "";
-                        literal = Literal::None;
+                        literal = LiteralType::None;
                         continue;
                     }
 
@@ -170,7 +176,7 @@ impl Lexer {
                     current_identifier = ci.as_ref();
                     continue;
                 },
-                Literal::Int(_) => {
+                LiteralType::Int => {
                     match c {
                         '0'..='9' => {
                             ci = format!("{}{}", current_identifier, c);
@@ -199,7 +205,7 @@ impl Lexer {
                             tokens.push(Token::Literal(Literal::Int(u64::from_str_radix(current_identifier, integer_base).unwrap())));
                             integer_base = 10;
                             current_identifier = "";
-                            literal = Literal::None;
+                            literal = LiteralType::None;
                         }
                     } 
                 },
@@ -241,7 +247,7 @@ impl Lexer {
                     current_identifier = "-";
                 },
                 '"' => {
-                    literal = Literal::Str(String::new());
+                    literal = LiteralType::Str;
                     continue;
                 }
                 '=' => {
@@ -314,7 +320,7 @@ impl Lexer {
                     double_identifier!("<", current_identifier, tokens);
                 }
                 '0'..='9' => {
-                    literal = Literal::Int(0);
+                    literal = LiteralType::Int;
                     if current_identifier != "" {
                         tokens.push(Token::new(current_identifier));
                         current_identifier = "";

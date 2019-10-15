@@ -143,8 +143,8 @@ impl Lexer {
         let multi_line = regex::Regex::new(r"/\*[^*]*\*+(?:[^/*][^*]*\*+)*/")?;
 
         Ok(
-            multi_line.replace_all(
-                single_line.replace_all(input, "").to_mut(), ""
+            single_line.replace_all(
+                multi_line.replace_all(input, "").to_mut(), ""
             ).to_mut().to_string())
     }
 
@@ -346,5 +346,28 @@ impl Lexer {
             tokens.push(Token::new(current_identifier));
         }
         Ok(tokens)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use Token::*;
+    use super::Literal::*;
+    #[test]
+    fn test() {
+        let mut lexer = Lexer::new();
+        assert_eq!(
+            lexer.lex("fn hi(){if 1==1{print(\"hi\");}}").unwrap(),
+            vec!(Function, Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, If, Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+        );
+        assert_eq!(
+            lexer.lex("fn hi() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}").unwrap(),
+            vec!(Function, Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, If, Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+        );
+        assert_eq!(
+            lexer.lex("/**/fn hi/**//**/() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}// aje=  df d").unwrap(),
+            vec!(Function, Identifier(String::from("hi")), OpenParen, CloseParen, OpenBracket, If, Literal(Int(1)), DoubleEqual, Literal(Int(1)), OpenBracket, Identifier(String::from("print")), OpenParen, Literal(Str(String::from("hi"))), CloseParen, SemiColon, CloseBracket, CloseBracket)
+        );
     }
 }

@@ -118,6 +118,8 @@ impl TokenKind {
             "**" => TokenKind::Symbol(Symbol::Pow),
             "+=" => TokenKind::Symbol(Symbol::AddAssign),
             "-=" => TokenKind::Symbol(Symbol::SubAssign),
+            "*=" => TokenKind::Symbol(Symbol::MulAssign),
+            "/=" => TokenKind::Symbol(Symbol::DivAssign),
             ">" => TokenKind::Symbol(Symbol::Gt),
             "<" => TokenKind::Symbol(Symbol::Lt),
             ">=" => TokenKind::Symbol(Symbol::GtEq),

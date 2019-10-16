@@ -324,79 +324,27 @@ impl Lexer {
                     continue;
                 }
                 '=' => {
-                    if current_identifier == "=" {
-                        tokens.push(Token {
-                                token_kind: TokenKind::Symbol(Symbol::DoubleEqual),
-                                pos: self.pos
-                            });
-                        current_identifier = "";
-                        continue;
+                    match current_identifier {
+                        "=" | "+" | "-" | "*" | "/" | "<" | ">" => {
+                            tokens.push(
+                                Token {
+                                        token_kind: TokenKind::new(&format!("{}{}", current_identifier, "=")),
+                                        pos: self.pos
+                                    }
+                            );
+                            current_identifier = "";
+                        },
+                        _ => {
+                            if current_identifier != "" {
+                                tokens.push(Token {
+                                    token_kind: TokenKind::new(current_identifier),
+                                    pos: self.pos
+                                });
+                            }
+                            current_identifier = "=";
+                        }
                     }
-
-                    if current_identifier == "+" {
-                        tokens.push(Token {
-                                token_kind: TokenKind::Symbol(Symbol::AddAssign),
-                                pos: self.pos
-                            });
-                        current_identifier = "";
-                        continue;
-                    }
-
-                    if current_identifier == "-" {
-                        tokens.push(Token {
-                                token_kind: TokenKind::Symbol(Symbol::SubAssign),
-                                pos: self.pos
-                            });
-                        current_identifier = "";
-                        continue;
-                    }
-
-                    if current_identifier == "*" {
-                        tokens.push(Token {
-                                token_kind: TokenKind::Symbol(Symbol::MulAssign),
-                                pos: self.pos
-                            });
-                        current_identifier = "";
-                        continue;
-                    }
-
-                    if current_identifier == "/" {
-                        tokens.push(Token {
-                                token_kind: TokenKind::Symbol(Symbol::DivAssign),
-                                pos: self.pos
-                            });
-                        current_identifier = "";
-                        continue;
-                    }
-
-                    if current_identifier == "<" {
-                        tokens.push(Token {
-                                token_kind: TokenKind::Symbol(Symbol::LtEq),
-                                pos: self.pos
-                            });
-                        current_identifier = "";
-                        continue;
-                    }
-
-                    if current_identifier == ">" {
-                        tokens.push(Token {
-                                token_kind: TokenKind::Symbol(Symbol::GtEq),
-                                pos: self.pos
-                            });
-                        current_identifier = "";
-                        continue;
-                    }
-
-
                     
-                    if current_identifier != "" {
-                        tokens.push(Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
-                            });
-                    }
-
-                    current_identifier = "=";
                 }
                 '&' => {
                     double_identifier!("&", current_identifier, tokens, self);

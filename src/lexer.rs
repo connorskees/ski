@@ -480,56 +480,59 @@ mod test {
     #[test]
     fn test() {
         let mut lexer = Lexer::new();
-        /*
+        
         assert_eq!(
             lexer.lex("fn hi(){if 1==1{print(\"hi\");}}").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), Token::Symbol(OpenParen), Token::Symbol(CloseParen), Token::Symbol(OpenBracket), Token::Keyword(super::Keyword::If), Literal(Int(1)), Token::Symbol(DoubleEqual), Literal(Int(1)), Token::Symbol(OpenBracket), Identifier(String::from("print")), Token::Symbol(OpenParen), Literal(Str(String::from("hi"))), Token::Symbol(CloseParen), Token::Symbol(SemiColon), Token::Symbol(CloseBracket), Token::Symbol(CloseBracket))
+            vec!([Token { token_kind: Keyword(Function), pos: Pos { row: 0, col: 3 } }, Token { token_kind: Identifier("hi"), pos: Pos { row: 0, col: 6 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 6 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 7 } }, Token { token_kind: Symbol(OpenBracket), pos: Pos { row: 0, col: 8 } }, Token { token_kind: Keyword(If), pos: Pos { row: 0, col: 11 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 13 } }, Token { token_kind: Symbol(DoubleEqual), pos: Pos { row: 0, col: 14 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 16 } }, Token { token_kind: Symbol(OpenBracket), pos: Pos { row: 0, col: 16 } }, Token { token_kind: Identifier("print"), pos: Pos { row: 0, col: 22 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 22 } }, Token { token_kind: Literal(Str("\\hi\\")), pos: Pos { row: 
+0, col: 28 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 29 } }, Token { token_kind: Symbol(SemiColon), pos: Pos { row: 0, col: 30 } }, Token { token_kind: Symbol(CloseBracket), pos: Pos { row: 0, col: 31 } }, Token { token_kind: Symbol(CloseBracket), pos: Pos { row: 0, col: 32 } }])
         );
         assert_eq!(
             lexer.lex("fn hi() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), Token::Symbol(OpenParen), Token::Symbol(CloseParen), Token::Symbol(OpenBracket), Token::Keyword(super::Keyword::If), Literal(Int(1)), Token::Symbol(DoubleEqual), Literal(Int(1)), Token::Symbol(OpenBracket), Identifier(String::from("print")), Token::Symbol(OpenParen), Literal(Str(String::from("hi"))), Token::Symbol(CloseParen), Token::Symbol(SemiColon), Token::Symbol(CloseBracket), Token::Symbol(CloseBracket))
+            vec!([Token { token_kind: Keyword(Function), pos: Pos { row: 0, col: 3 } }, Token { token_kind: Identifier("hi"), pos: Pos { row: 0, col: 6 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 6 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 7 } }, Token { token_kind: Symbol(OpenBracket), pos: Pos { row: 0, col: 9 } }, Token { token_kind: Identifier("\\n\\tif"), pos: Pos { row: 0, col: 16 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 18 } }, Token { token_kind: Symbol(DoubleEqual), pos: Pos { row: 0, col: 20 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 23 } }, Token { token_kind: Symbol(OpenBracket), pos: Pos { row: 0, col: 24 } }, Token { token_kind: Identifier("\\n\\t\\tprint"), pos: Pos { row: 0, col: 36 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 36 } }, Token { token_kind: Literal(Str("\\hi\\")), pos: Pos { row: 0, col: 42 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 43 } }, Token { token_kind: Symbol(SemiColon), pos: Pos { row: 0, col: 44 } }, Token { token_kind: Identifier("\\n"), pos: Pos { row: 0, col: 47 } }, Token { token_kind: Symbol(CloseBracket), pos: Pos { 
+row: 0, col: 47 } }, Token { token_kind: Symbol(CloseBracket), pos: Pos { row: 0, col: 48 } }])
         );
         assert_eq!(
             lexer.lex("/**/fn hi/**//**/() {\n\tif 1 == 1 {\n\t\tprint(\"hi\");\n}}// aje=  df d").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("hi")), Token::Symbol(OpenParen), Token::Symbol(CloseParen), Token::Symbol(OpenBracket), Token::Keyword(super::Keyword::If), Literal(Int(1)), Token::Symbol(DoubleEqual), Literal(Int(1)), Token::Symbol(OpenBracket), Identifier(String::from("print")), Token::Symbol(OpenParen), Literal(Str(String::from("hi"))), Token::Symbol(CloseParen), Token::Symbol(SemiColon), Token::Symbol(CloseBracket), Token::Symbol(CloseBracket))
+            vec!([Token { token_kind: Keyword(Function), pos: Pos { row: 0, col: 3 } }, Token { token_kind: Identifier("hi"), pos: Pos { row: 0, col: 6 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 6 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 7 } }, Token { token_kind: Symbol(OpenBracket), pos: Pos { row: 0, col: 9 } }, Token { token_kind: Identifier("\\n\\tif"), pos: Pos { row: 0, col: 16 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 18 } }, Token { token_kind: Symbol(DoubleEqual), pos: Pos { row: 0, col: 20 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 23 } }, Token { token_kind: Symbol(OpenBracket), pos: Pos { row: 0, col: 24 } }, Token { token_kind: Identifier("\\n\\t\\tprint"), pos: Pos { row: 0, col: 36 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 36 } }, Token { token_kind: Literal(Str("\\hi\\")), pos: Pos { row: 0, col: 42 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 43 } }, Token { token_kind: Symbol(SemiColon), pos: Pos { row: 0, col: 44 } }, Token { token_kind: Identifier("\\n"), pos: Pos { row: 0, col: 47 } }, Token { token_kind: Symbol(CloseBracket), pos: Pos { 
+row: 0, col: 47 } }, Token { token_kind: Symbol(CloseBracket), pos: Pos { row: 0, col: 48 } }])
         );
         assert_eq!(
             lexer.lex("1+1").unwrap(),
-            vec!(Literal(Int(1)), Token::Symbol(Add), Literal(Int(1)))
+            vec!([Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 2 } }, Token { token_kind: Symbol(Add), pos: Pos { row: 0, col: 4 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 5 } }])
         );
         assert_eq!(
             lexer.lex("1+1 ").unwrap(),
-            vec!(Literal(Int(1)), Token::Symbol(Add), Literal(Int(1)))
+            vec!([Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 2 } }, Token { token_kind: Symbol(Add), pos: Pos { row: 0, col: 4 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 5 } }])
         );
         assert_eq!(
             lexer.lex("1 + 1").unwrap(),
-            vec!(Literal(Int(1)), Token::Symbol(Add), Literal(Int(1)))
+            vec!([Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 2 } }, Token { token_kind: Symbol(Add), pos: Pos { row: 0, col: 4 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 5 } }])
         );
         assert_eq!(
             lexer.lex("let x = 1 + 1;").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Let), Identifier(String::from("x")), Token::Symbol(Equal), Literal(Int(1)), Token::Symbol(Add), Literal(Int(1)), Token::Symbol(SemiColon))
+            vec! ([Token { token_kind: Keyword(Let), pos: Pos { row: 0, col: 4 } }, Token { token_kind: Identifier("x"), pos: Pos { row: 0, col: 6 } }, Token { token_kind: Symbol(Equal), pos: Pos { row: 0, col: 8 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 10 } }, Token { token_kind: Symbol(Add), pos: Pos { row: 0, col: 12 } }, Token { token_kind: Literal(Int(1)), pos: Pos { row: 0, col: 14 } }, Token { token_kind: Symbol(SemiColon), pos: Pos { row: 0, col: 14 } }])
         );
         assert_eq!(
             lexer.lex("\"hi\"").unwrap(),
-            vec!(Literal(Str(String::from("hi"))))
+            vec!([Token { token_kind: Literal(Str("\\hi\\")), pos: Pos { row: 0, col: 6 } }])
         );
         assert_eq!(
             lexer.lex("fn func()").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), Token::Symbol(OpenParen), Token::Symbol(CloseParen))
+            vec!([Token { token_kind: Keyword(Function), pos: Pos { row: 0, col: 3 } }, Token { token_kind: Identifier("func"), pos: Pos { row: 0, col: 8 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 8 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 9 } }])
         );
          assert_eq!(
             lexer.lex("fn func ()").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), Token::Symbol(OpenParen), Token::Symbol(CloseParen))
+            vec!([Token { token_kind: Keyword(Function), pos: Pos { row: 0, col: 3 } }, Token { token_kind: Identifier("func"), pos: Pos { row: 0, col: 8 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 8 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 9 } }])
         );
          assert_eq!(
             lexer.lex("fn func (  )").unwrap(),
-            vec!(Token::Keyword(super::Keyword::Function), Identifier(String::from("func")), Token::Symbol(OpenParen), Token::Symbol(CloseParen))
+            vec!([Token { token_kind: Keyword(Function), pos: Pos { row: 0, col: 3 } }, Token { token_kind: Identifier("func"), pos: Pos { row: 0, col: 8 } }, Token { token_kind: Symbol(OpenParen), pos: Pos { row: 0, col: 8 } }, Token { token_kind: Symbol(CloseParen), pos: Pos { row: 0, col: 9 } }])
         );
         assert_eq!(
             lexer.lex("| |").unwrap(),
-            vec!(BinaryOr, BinaryOr)
+            vec!([Token { token_kind: Symbol(BinaryOr), pos: Pos { row: 0, col: 2 } }, Token { token_kind: Symbol(BinaryOr), pos: Pos { row: 0, col: 3 } }])
         );
-        */
+        
       
     }
 }

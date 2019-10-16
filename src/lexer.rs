@@ -11,7 +11,7 @@ pub enum Literal {
 pub enum LiteralType {
     Str,
     Int,
-    None
+    None,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -25,7 +25,7 @@ pub enum Keyword {
     Loop,
     Return,
     If,
-    Else
+    Else,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -66,21 +66,18 @@ pub enum TokenKind {
     Identifier(String),
     Literal(Literal),
     Keyword(Keyword),
-    Symbol(Symbol)
+    Symbol(Symbol),
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Pos {
     row: u16,
-    col: u16
+    col: u16,
 }
 
 impl Pos {
     pub fn new() -> Pos {
-        Pos {
-            row: 0,
-            col: 0
-        }
+        Pos { row: 0, col: 0 }
     }
 }
 
@@ -133,9 +130,7 @@ impl TokenKind {
             "||" => TokenKind::Symbol(Symbol::LogicalOr),
             "true" => TokenKind::Literal(Literal::Bool(true)),
             "false" => TokenKind::Literal(Literal::Bool(false)),
-            _ => {
-                TokenKind::Identifier(token.to_owned())
-            }
+            _ => TokenKind::Identifier(token.to_owned()),
         }
     }
 }
@@ -143,15 +138,12 @@ impl TokenKind {
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct Token {
     token_kind: TokenKind,
-    pos: Pos
+    pos: Pos,
 }
 
 impl Token {
     pub fn new(token_kind: TokenKind, pos: Pos) -> Token {
-        Token {
-            token_kind,
-            pos
-        }
+        Token { token_kind, pos }
     }
 }
 
@@ -159,40 +151,37 @@ macro_rules! double_identifier {
     ( $i:literal, $cur:ident, $idents:ident, $self:ident ) => {
         if $cur == $i {
             $idents.push(Token {
-                    token_kind: TokenKind::new(concat!($i, $i)),
-                    pos: $self.pos
-                }
-            );
+                token_kind: TokenKind::new(concat!($i, $i)),
+                pos: $self.pos,
+            });
             $cur = "";
             continue;
         }
-        
+
         if $cur != "" {
             $idents.push(Token {
-                    token_kind: TokenKind::new($cur),
-                    pos: $self.pos
-                });
+                token_kind: TokenKind::new($cur),
+                pos: $self.pos,
+            });
         }
 
         $cur = $i;
-    }
+    };
 }
 
 impl Lexer {
     pub fn new() -> Lexer {
-        Lexer {
-            pos: Pos::new()
-        }
+        Lexer { pos: Pos::new() }
     }
 
     pub fn strip_comments(input: &str) -> Result<String, regex::Error> {
         let single_line = regex::Regex::new(r"//[^\n\r]*")?;
         let multi_line = regex::Regex::new(r"/\*[^*]*\*+(?:[^/*][^*]*\*+)*/")?;
 
-        Ok(
-            single_line.replace_all(
-                multi_line.replace_all(input, "").to_mut(), ""
-            ).to_mut().to_string())
+        Ok(single_line
+            .replace_all(multi_line.replace_all(input, "").to_mut(), "")
+            .to_mut()
+            .to_string())
     }
 
     pub fn lex(&mut self, s: &str) -> Result<Vec<Token>, regex::Error> {
@@ -214,10 +203,11 @@ impl Lexer {
                 LiteralType::Str => {
                     if c == '"' {
                         tokens.push(Token {
-                                token_kind: TokenKind::Literal(Literal::Str(current_identifier.to_owned())),
-                                pos: self.pos
-                            }
-                        );
+                            token_kind: TokenKind::Literal(Literal::Str(
+                                current_identifier.to_owned(),
+                            )),
+                            pos: self.pos,
+                        });
                         current_identifier = "";
                         literal = LiteralType::None;
                         continue;
@@ -226,42 +216,42 @@ impl Lexer {
                     ci = format!("{}{}", current_identifier, c);
                     current_identifier = ci.as_ref();
                     continue;
-                },
-                LiteralType::Int => {
-                    match c {
-                        '0'..='9' => {
+                }
+                LiteralType::Int => match c {
+                    '0'..='9' => {
+                        ci = format!("{}{}", current_identifier, c);
+                        current_identifier = ci.as_ref();
+                        continue;
+                    }
+                    'a'..='f' | 'A'..='F' => {
+                        if integer_base == 16 {
                             ci = format!("{}{}", current_identifier, c);
                             current_identifier = ci.as_ref();
-                            continue;
-                        },
-                        'a'..='f' | 'A'..='F' => {
-                            if integer_base == 16 {
-                                ci = format!("{}{}", current_identifier, c);
-                                current_identifier = ci.as_ref();
-                            } else {
-                                unimplemented!()
-                            }
-                            continue;
+                        } else {
+                            unimplemented!()
                         }
-                        'x' => {
-                            if current_identifier.len() == 1 {
-                                current_identifier = "";
-                                integer_base = 16;
-                            } else {
-                                unimplemented!()
-                            }
-                            continue;
-                        },
-                        _ => {
-                            tokens.push(Token {
-                                token_kind: TokenKind::Literal(Literal::Int(u64::from_str_radix(current_identifier, integer_base).unwrap())),
-                                pos: self.pos
-                            });
-                            integer_base = 10;
+                        continue;
+                    }
+                    'x' => {
+                        if current_identifier.len() == 1 {
                             current_identifier = "";
-                            literal = LiteralType::None;
+                            integer_base = 16;
+                        } else {
+                            unimplemented!()
                         }
-                    } 
+                        continue;
+                    }
+                    _ => {
+                        tokens.push(Token {
+                            token_kind: TokenKind::Literal(Literal::Int(
+                                u64::from_str_radix(current_identifier, integer_base).unwrap(),
+                            )),
+                            pos: self.pos,
+                        });
+                        integer_base = 10;
+                        current_identifier = "";
+                        literal = LiteralType::None;
+                    }
                 },
                 _ => {}
             }
@@ -269,21 +259,19 @@ impl Lexer {
             match c {
                 ' ' | '\r' | '\t' => {
                     if current_identifier != "" {
-                        tokens.push(
-                            Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
-                            }
-                        );
+                        tokens.push(Token {
+                            token_kind: TokenKind::new(current_identifier),
+                            pos: self.pos,
+                        });
                         current_identifier = "";
                     }
-                },
+                }
                 '\n' => {
                     if current_identifier != "" {
                         tokens.push(Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
-                            });
+                            token_kind: TokenKind::new(current_identifier),
+                            pos: self.pos,
+                        });
                         current_identifier = "";
                     }
                     self.pos.row += 1;
@@ -292,62 +280,56 @@ impl Lexer {
                 '{' | '}' | '(' | ')' | ';' | '^' => {
                     if current_identifier != "" {
                         tokens.push(Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
-                            });
+                            token_kind: TokenKind::new(current_identifier),
+                            pos: self.pos,
+                        });
                         current_identifier = "";
                     }
                     tokens.push(Token {
-                            token_kind: TokenKind::new(&c.to_string()),
-                            pos: self.pos
-                        }
-                    );
-                },
+                        token_kind: TokenKind::new(&c.to_string()),
+                        pos: self.pos,
+                    });
+                }
                 '+' => {
                     if current_identifier != "" {
                         tokens.push(Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
-                            });
+                            token_kind: TokenKind::new(current_identifier),
+                            pos: self.pos,
+                        });
                     }
                     current_identifier = "+";
-                },
+                }
                 '-' => {
                     if current_identifier != "" {
                         tokens.push(Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
-                            });
+                            token_kind: TokenKind::new(current_identifier),
+                            pos: self.pos,
+                        });
                     }
                     current_identifier = "-";
-                },
+                }
                 '"' => {
                     literal = LiteralType::Str;
                     continue;
                 }
-                '=' => {
-                    match current_identifier {
-                        "=" | "+" | "-" | "*" | "/" | "<" | ">" => {
-                            tokens.push(
-                                Token {
-                                        token_kind: TokenKind::new(&format!("{}{}", current_identifier, "=")),
-                                        pos: self.pos
-                                    }
-                            );
-                            current_identifier = "";
-                        },
-                        _ => {
-                            if current_identifier != "" {
-                                tokens.push(Token {
-                                    token_kind: TokenKind::new(current_identifier),
-                                    pos: self.pos
-                                });
-                            }
-                            current_identifier = "=";
-                        }
+                '=' => match current_identifier {
+                    "=" | "+" | "-" | "*" | "/" | "<" | ">" => {
+                        tokens.push(Token {
+                            token_kind: TokenKind::new(&format!("{}{}", current_identifier, "=")),
+                            pos: self.pos,
+                        });
+                        current_identifier = "";
                     }
-                    
-                }
+                    _ => {
+                        if current_identifier != "" {
+                            tokens.push(Token {
+                                token_kind: TokenKind::new(current_identifier),
+                                pos: self.pos,
+                            });
+                        }
+                        current_identifier = "=";
+                    }
+                },
                 '&' => {
                     double_identifier!("&", current_identifier, tokens, self);
                 }
@@ -370,9 +352,9 @@ impl Lexer {
                     literal = LiteralType::Int;
                     if current_identifier != "" {
                         tokens.push(Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
-                            });
+                            token_kind: TokenKind::new(current_identifier),
+                            pos: self.pos,
+                        });
                         current_identifier = "";
                     }
                     ci = format!("{}{}", current_identifier, c);
@@ -383,7 +365,7 @@ impl Lexer {
                         "=" | "&" | "|" | "*" | "/" | "<" | ">" | "+" | "-" => {
                             tokens.push(Token {
                                 token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
+                                pos: self.pos,
                             });
                             current_identifier = "";
                         }
@@ -397,23 +379,24 @@ impl Lexer {
         match literal {
             LiteralType::Int => {
                 tokens.push(Token {
-                        token_kind: TokenKind::Literal(Literal::Int(u64::from_str_radix(current_identifier, integer_base).unwrap())),
-                        pos: self.pos
-                    }
-                );
+                    token_kind: TokenKind::Literal(Literal::Int(
+                        u64::from_str_radix(current_identifier, integer_base).unwrap(),
+                    )),
+                    pos: self.pos,
+                });
             }
             LiteralType::Str => {
                 tokens.push(Token {
-                        token_kind: TokenKind::Literal(Literal::Str(current_identifier.to_owned())),
-                        pos: self.pos
-                    });
+                    token_kind: TokenKind::Literal(Literal::Str(current_identifier.to_owned())),
+                    pos: self.pos,
+                });
             }
             _ => {
                 if current_identifier != "" {
                     tokens.push(Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos
-                            });
+                        token_kind: TokenKind::new(current_identifier),
+                        pos: self.pos,
+                    });
                 }
             }
         }

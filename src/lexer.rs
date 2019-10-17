@@ -150,7 +150,7 @@ impl Token {
 }
 
 macro_rules! double_identifier {
-    ( $i:literal, $cur:ident, $idents:ident, $self:ident ) => {
+    ( $i:literal, $cur:ident, $idents:ident, $self:ident ) => {{
         if $cur == $i {
             $idents.push(Token {
                 token_kind: TokenKind::new(concat!($i, $i)),
@@ -168,7 +168,7 @@ macro_rules! double_identifier {
         }
 
         $cur = $i;
-    };
+    }};
 }
 
 impl Lexer {
@@ -335,27 +335,13 @@ impl Lexer {
                         current_identifier = "=";
                     }
                 },
-                '&' => {
-                    double_identifier!("&", current_identifier, tokens, self);
-                }
-                '|' => {
-                    double_identifier!("|", current_identifier, tokens, self);
-                }
-                '*' => {
-                    double_identifier!("*", current_identifier, tokens, self);
-                }
-                '/' => {
-                    double_identifier!("/", current_identifier, tokens, self);
-                }
-                '>' => {
-                    double_identifier!(">", current_identifier, tokens, self);
-                }
-                '<' => {
-                    double_identifier!("<", current_identifier, tokens, self);
-                }
-                '!' => {
-                    continue;
-                }
+                '&' => double_identifier!("&", current_identifier, tokens, self),
+                '|' => double_identifier!("|", current_identifier, tokens, self),
+                '*' => double_identifier!("*", current_identifier, tokens, self),
+                '/' => double_identifier!("/", current_identifier, tokens, self),
+                '>' => double_identifier!(">", current_identifier, tokens, self),
+                '<' => double_identifier!("<", current_identifier, tokens, self),
+                '!' => continue,
                 '0'..='9' => {
                     literal = LiteralKind::Int;
                     if current_identifier != "" {
@@ -384,6 +370,7 @@ impl Lexer {
                 }
             }
         }
+        
         match literal {
             LiteralKind::Int => {
                 tokens.push(Token {

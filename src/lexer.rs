@@ -8,7 +8,7 @@ pub enum Literal {
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-pub enum LiteralType {
+pub enum LiteralKind {
     Str,
     Int,
     None,
@@ -194,7 +194,7 @@ impl Lexer {
 
         let mut current_identifier: &str = "";
 
-        let mut literal = LiteralType::None;
+        let mut literal = LiteralKind::None;
 
         let mut integer_base: u32 = 10;
         // let mut next_char_is_escaped = false;
@@ -202,24 +202,27 @@ impl Lexer {
         for c in input.chars() {
             self.pos.col += 1;
             match literal {
-                LiteralType::Str => {
-                    if c == '"' {
-                        tokens.push(Token {
-                            token_kind: TokenKind::Literal(Literal::Str(
-                                current_identifier.to_owned(),
-                            )),
-                            pos: self.pos,
-                        });
-                        current_identifier = "";
-                        literal = LiteralType::None;
-                        continue;
+                LiteralKind::Str => {
+                    match c {
+                        '"' | '\'' => {
+                            tokens.push(Token {
+                                token_kind: TokenKind::Literal(Literal::Str(
+                                    current_identifier.to_owned(),
+                                )),
+                                pos: self.pos,
+                            });
+                            current_identifier = "";
+                            literal = LiteralKind::None;
+                            continue;
+                        },
+                        _ => {}
                     }
 
                     ci = format!("{}{}", current_identifier, c);
                     current_identifier = ci.as_ref();
                     continue;
                 }
-                LiteralType::Int => match c {
+                LiteralKind::Int => match c {
                     '0'..='9' => {
                         ci = format!("{}{}", current_identifier, c);
                         current_identifier = ci.as_ref();
@@ -252,7 +255,7 @@ impl Lexer {
                         });
                         integer_base = 10;
                         current_identifier = "";
-                        literal = LiteralType::None;
+                        literal = LiteralKind::None;
                     }
                 },
                 _ => {}
@@ -310,8 +313,8 @@ impl Lexer {
                     }
                     current_identifier = "-";
                 }
-                '"' => {
-                    literal = LiteralType::Str;
+                '"' | '\'' => {
+                    literal = LiteralKind::Str;
                     continue;
                 }
                 '=' => match current_identifier {
@@ -354,7 +357,7 @@ impl Lexer {
                     continue;
                 }
                 '0'..='9' => {
-                    literal = LiteralType::Int;
+                    literal = LiteralKind::Int;
                     if current_identifier != "" {
                         tokens.push(Token {
                             token_kind: TokenKind::new(current_identifier),
@@ -382,7 +385,7 @@ impl Lexer {
             }
         }
         match literal {
-            LiteralType::Int => {
+            LiteralKind::Int => {
                 tokens.push(Token {
                     token_kind: TokenKind::Literal(Literal::Int(
                         u64::from_str_radix(current_identifier, integer_base).unwrap(),
@@ -390,7 +393,7 @@ impl Lexer {
                     pos: self.pos,
                 });
             }
-            LiteralType::Str => {
+            LiteralKind::Str => {
                 tokens.push(Token {
                     token_kind: TokenKind::Literal(Literal::Str(current_identifier.to_owned())),
                     pos: self.pos,

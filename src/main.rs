@@ -5,6 +5,8 @@ use std::fs::File;
 use lexer::Lexer;
 
 mod lexer;
+mod errors;
+mod ast;
 
 fn main() -> io::Result<()> {
     let mut f = File::open("test.ski")?;

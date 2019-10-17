@@ -35,8 +35,9 @@ pub enum Symbol {
     OpenParen,
     CloseParen,
     SemiColon,
-    DoubleEqual,
-    Equal,
+    Eq,
+    Assign,
+    Ne,
     Add,
     Sub,
     Mul,
@@ -103,8 +104,9 @@ impl TokenKind {
             "}" => TokenKind::Symbol(Symbol::CloseBracket),
             "(" => TokenKind::Symbol(Symbol::OpenParen),
             ")" => TokenKind::Symbol(Symbol::CloseParen),
-            "=" => TokenKind::Symbol(Symbol::Equal),
-            "==" => TokenKind::Symbol(Symbol::DoubleEqual),
+            "=" => TokenKind::Symbol(Symbol::Assign),
+            "==" => TokenKind::Symbol(Symbol::Eq),
+            "!=" => TokenKind::Symbol(Symbol::Ne),
             ";" => TokenKind::Symbol(Symbol::SemiColon),
             "'" => TokenKind::Symbol(Symbol::SingleQuote),
             "\"" => TokenKind::Symbol(Symbol::DoubleQuote),
@@ -313,7 +315,7 @@ impl Lexer {
                     continue;
                 }
                 '=' => match current_identifier {
-                    "=" | "+" | "-" | "*" | "/" | "<" | ">" => {
+                    "=" | "+" | "-" | "*" | "/" | "<" | ">" | "!" => {
                         tokens.push(Token {
                             token_kind: TokenKind::new(&format!("{}{}", current_identifier, "=")),
                             pos: self.pos,
@@ -348,6 +350,9 @@ impl Lexer {
                 '<' => {
                     double_identifier!("<", current_identifier, tokens, self);
                 }
+                '!' => {
+                    continue;
+                }
                 '0'..='9' => {
                     literal = LiteralType::Int;
                     if current_identifier != "" {
@@ -362,7 +367,7 @@ impl Lexer {
                 }
                 _ => {
                     match current_identifier {
-                        "=" | "&" | "|" | "*" | "/" | "<" | ">" | "+" | "-" => {
+                        "=" | "&" | "|" | "*" | "/" | "<" | ">" | "+" | "-" | "!" => {
                             tokens.push(Token {
                                 token_kind: TokenKind::new(current_identifier),
                                 pos: self.pos,

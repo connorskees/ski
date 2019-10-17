@@ -1,10 +1,7 @@
 use crate::lexer::Literal;
 use std::boxed::Box;
-use std::fmt;
 
-pub struct AST {
-
-}
+pub struct AST {}
 /*
 let x = 1 + 1
 */

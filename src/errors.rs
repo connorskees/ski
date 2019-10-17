@@ -1,9 +1,8 @@
-use std::{fmt, io};
+use std::fmt;
 
 /// Container for errors that can occur during lexing
 #[derive(Debug)]
-pub enum LexingError {
-}
+pub enum LexingError {}
 
 impl fmt::Display for LexingError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

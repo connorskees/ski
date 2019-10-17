@@ -9,7 +9,7 @@ pub enum Literal {
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub enum LiteralKind {
-    Str,
+    Str(QuoteKind),
     Int,
     None,
 }
@@ -137,6 +137,23 @@ impl TokenKind {
     }
 }
 
+//todo: remove copy and clone
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
+pub enum QuoteKind {
+    SingleQuote,
+    DoubleQuote
+}
+
+impl QuoteKind {
+    pub fn new(q: char) -> QuoteKind {
+        match q {
+            '\'' => QuoteKind::SingleQuote,
+            '"' => QuoteKind::DoubleQuote,
+            _ => unreachable!()
+        }
+    }
+}
+
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct Token {
     token_kind: TokenKind,
@@ -197,24 +214,49 @@ impl Lexer {
         let mut literal = LiteralKind::None;
 
         let mut integer_base: u32 = 10;
-        // let mut next_char_is_escaped = false;
+        let mut char_is_escaped = false;
 
         for c in input.chars() {
             self.pos.col += 1;
             match literal {
-                LiteralKind::Str => {
+                LiteralKind::Str(quote_kind) => {
                     match c {
                         '"' | '\'' => {
-                            tokens.push(Token {
-                                token_kind: TokenKind::Literal(Literal::Str(
-                                    current_identifier.to_owned(),
-                                )),
-                                pos: self.pos,
-                            });
-                            current_identifier = "";
-                            literal = LiteralKind::None;
-                            continue;
+                            if !char_is_escaped && quote_kind == QuoteKind::new(c) {
+                                tokens.push(Token {
+                                    token_kind: TokenKind::Literal(Literal::Str(
+                                        current_identifier.to_owned(),
+                                    )),
+                                    pos: self.pos,
+                                });
+                                current_identifier = "";
+                                literal = LiteralKind::None;
+                                continue;
+                            }
                         },
+                        '\\' => {
+                            char_is_escaped = !char_is_escaped;
+                            if char_is_escaped {
+                                continue;
+                            }
+                        },
+                        'n' | 'r' | 't' => {
+                            if char_is_escaped {
+                                let escaped_char: char = match c {
+                                    'n' => '\n',
+                                    'r' => '\r',
+                                    't' => '\t',
+                                    _ => unreachable!()
+                                };
+                                ci = format!("{}{}", current_identifier, escaped_char);
+                                current_identifier = ci.as_ref();
+                                char_is_escaped = false;
+                                continue;
+                            }
+                        },
+                        '\n' | '\r' => {
+                            unimplemented!()
+                        }
                         _ => {}
                     }
 
@@ -314,7 +356,7 @@ impl Lexer {
                     current_identifier = "-";
                 }
                 '"' | '\'' => {
-                    literal = LiteralKind::Str;
+                    literal = LiteralKind::Str(QuoteKind::new(c));
                     continue;
                 }
                 '=' => match current_identifier {
@@ -380,7 +422,7 @@ impl Lexer {
                     pos: self.pos,
                 });
             }
-            LiteralKind::Str => {
+            LiteralKind::Str(_) => {
                 tokens.push(Token {
                     token_kind: TokenKind::Literal(Literal::Str(current_identifier.to_owned())),
                     pos: self.pos,

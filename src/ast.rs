@@ -36,52 +36,53 @@ pub enum Expr {
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct UnaryExpr {
+pub struct UnaryExpr {
     pub op: UnaryOpKind,
     pub child: Expr,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct BinaryExpr {
+pub struct BinaryExpr {
     pub op: BinaryOpKind,
     pub left: Expr,
     pub right: Expr,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct FuncDef {
+pub struct FuncDef {
     pub name: String,
     pub param_names: Vec<String>,
     pub body: Expr,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct FuncCall {
+pub struct FuncCall {
     pub func: Expr,
     pub params: Vec<Expr>
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct If {
+pub struct If {
     pub cond: Expr,
     pub then: Expr,
     pub else_: Expr
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct For {
+pub struct For {
     pub item: String,
-    pub container: Expr
+    pub container: Expr,
+    pub body: Expr,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct While {
+pub struct While {
     pub cond: Expr,
     pub body: Expr,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct VariableDecl {
+pub struct VariableDecl {
     pub name: String,
     pub value: Expr,
 }

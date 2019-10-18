@@ -37,11 +37,9 @@ macro_rules! ident_val {
     ($self:ident) => {
         match $self.eat_token().token_kind {
             TokenKind::Identifier(ref ident) => ident.to_string(),
-            _ => {
-                println!("{:?}", $self.eat_token().token_kind);
-                unreachable!()
-            }
+            _ => unreachable!()
         }
+        
     }
 }
 
@@ -125,7 +123,7 @@ impl Parser {
 
     fn eat_token(&mut self) -> &Token {
         self.cursor += 1;
-        &self.tokens[self.cursor]
+        &self.tokens[self.cursor-1]
     }
 
     fn peek_token(&mut self) -> &Token {

@@ -3,6 +3,10 @@ use std::fmt;
 /// Container for errors that can occur during lexing
 #[derive(Debug)]
 pub enum LexingError {}
+#[derive(Debug)]
+pub enum ParseError {
+    Error(&'static str)
+}
 
 impl fmt::Display for LexingError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -15,8 +19,8 @@ impl fmt::Display for LexingError {
     }
 }
 
-// impl std::convert::From<StringDecodeError> for PNGDecodingError {
-//     fn from(error: StringDecodeError) -> Self {
-//         PNGDecodingError::StringDecodeError(error)
-//     }
-// }
+impl std::convert::From<&'static str> for ParseError {
+    fn from(error: &'static str) -> Self {
+        ParseError::Error(error)
+    }
+}

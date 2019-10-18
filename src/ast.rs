@@ -1,7 +1,6 @@
-use crate::lexer::Literal;
+use crate::lexer::{TokenKind, Literal};
 use std::boxed::Box;
 
-pub struct AST {}
 /*
 let x = 1 + 1
 */
@@ -21,6 +20,8 @@ let x = 1 + 1
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub enum Expr {
+    Int(u64),
+    Str(String),
     Unary(Box<UnaryExpr>),
     Binary(Box<BinaryExpr>),
     Literal(Literal),

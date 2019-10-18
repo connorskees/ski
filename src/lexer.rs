@@ -26,6 +26,8 @@ pub enum Keyword {
     Return,
     If,
     Else,
+    Continue,
+    Break,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -101,6 +103,8 @@ impl TokenKind {
             "if" => TokenKind::Keyword(Keyword::If),
             "else" => TokenKind::Keyword(Keyword::Else),
             "in" => TokenKind::Keyword(Keyword::In),
+            "continue" => TokenKind::Keyword(Keyword::Continue),
+            "break" => TokenKind::Keyword(Keyword::Break),
             "{" => TokenKind::Symbol(Symbol::OpenBracket),
             "}" => TokenKind::Symbol(Symbol::CloseBracket),
             "(" => TokenKind::Symbol(Symbol::OpenParen),
@@ -158,7 +162,7 @@ impl QuoteKind {
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct Token {
-    token_kind: TokenKind,
+    pub token_kind: TokenKind,
     pos: Pos,
 }
 

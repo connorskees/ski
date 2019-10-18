@@ -8,7 +8,7 @@ pub enum Literal {
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-pub enum LiteralKind {
+enum LiteralKind {
     Str(QuoteKind),
     Int,
     None,
@@ -141,7 +141,7 @@ impl TokenKind {
 
 //todo: remove copy and clone
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
-pub enum QuoteKind {
+enum QuoteKind {
     SingleQuote,
     DoubleQuote
 }
@@ -195,7 +195,7 @@ impl Lexer {
         Lexer { pos: Pos::new() }
     }
 
-    pub fn strip_comments(input: &str) -> Result<String, regex::Error> {
+    fn strip_comments(input: &str) -> Result<String, regex::Error> {
         let single_line = regex::Regex::new(r"//[^\n\r]*")?;
         let multi_line = regex::Regex::new(r"/\*[^*]*\*+(?:[^/*][^*]*\*+)*/")?;
 

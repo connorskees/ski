@@ -1,5 +1,4 @@
 #![deny(missing_debug_implementations)]
-#![allow(unused_imports, dead_code, private_in_public)]
 use std::io::{self, stdin};
 use std::io::prelude::*;
 use std::fs::File;

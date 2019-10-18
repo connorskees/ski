@@ -33,7 +33,7 @@ macro_rules! eat_literal {
     }
 }
 
-macro_rules! ident_val {
+macro_rules! eat_ident {
     ($self:ident) => {
         match $self.eat_token().token_kind {
             TokenKind::Identifier(ref ident) => ident.to_string(),
@@ -98,9 +98,9 @@ impl Parser {
 
     fn eat_for(&mut self) -> PResult {
         expect_keyword!(self, For, "expected keyword 'for'");
-        let item = ident_val!(self);//Self::ident_val(self.eat_token().token_kind);
+        let item = eat_ident!(self);
         expect_keyword!(self, In, "expected keyword 'in'");
-        let container = eat_literal!(self);
+        let container = self.eat_stmt()?;
         expect_symbol!(self, OpenBracket, "expected '{'");
         let body = self.eat_stmt()?;
         expect_symbol!(self, CloseBracket, "expected '}'");

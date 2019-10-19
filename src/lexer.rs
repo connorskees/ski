@@ -1,5 +1,7 @@
 use regex;
 
+use crate::errors::LexingError;
+
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub enum Literal {
     Str(String),
@@ -212,7 +214,7 @@ impl Lexer {
             .to_string())
     }
 
-    pub fn lex(&mut self, s: &str) -> Result<Vec<Token>, regex::Error> {
+    pub fn lex(&mut self, s: &str) -> Result<Vec<Token>, LexingError> {
         let input = Lexer::strip_comments(s)?;
         let mut tokens: Vec<Token> = Vec::with_capacity(40);
 
@@ -281,7 +283,7 @@ impl Lexer {
                             ci = format!("{}{}", current_identifier, c);
                             current_identifier = ci.as_ref();
                         } else {
-                            unimplemented!()
+                            return Err(LexingError::InvalidIntegerLiteralCharacter);
                         }
                         continue;
                     }

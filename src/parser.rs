@@ -142,8 +142,12 @@ impl Parser {
         &self.tokens[self.cursor-1]
     }
 
-    fn peek_token(&mut self) -> &Token {
-        &self.tokens[self.cursor+1]
+    fn peek_token(&mut self) -> Option<&Token> {
+        if &self.tokens.len() <= &(self.cursor + 1) {
+            None
+        } else {
+            Some(&self.tokens[self.cursor+1])
+        }
     }
 
     fn ident_val(t: TokenKind) -> String {

@@ -5,6 +5,7 @@ use std::fmt;
 pub enum LexingError {}
 #[derive(Debug)]
 pub enum ParseError {
+    Eof,
     Error(&'static str)
 }
 

@@ -71,6 +71,7 @@ pub enum TokenKind {
     Literal(Literal),
     Keyword(Keyword),
     Symbol(Symbol),
+    Eof,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]

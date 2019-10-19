@@ -15,17 +15,17 @@ fn main() -> io::Result<()> {
     let mut f = File::open("test.ski")?;
     let mut input = String::new();
     let mut lexer = Lexer::new();
-    // stdin().read_line(&mut input)?;
-    f.read_to_string(&mut input)?;
+    stdin().read_line(&mut input)?;
+    // f.read_to_string(&mut input)?;
 
     let tokens = lexer.lex(&input).unwrap();
     
     println!("{:?}", &tokens);
     
-    let mut parser = Parser::new(tokens);
-    let x = parser.parse().unwrap();
+    // let mut parser = Parser::new(tokens);
+    // let x = parser.parse().unwrap();
     
-    println!("{:?}", x);
+    // println!("{:?}", x);
 
     Ok(())
 }

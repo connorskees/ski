@@ -263,9 +263,6 @@ impl Lexer {
                                 continue;
                             }
                         },
-                        '\n' | '\r' => {
-                            unimplemented!()
-                        }
                         _ => {}
                     }
 

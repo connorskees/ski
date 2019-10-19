@@ -145,7 +145,7 @@ impl TokenKind {
 }
 
 //todo: remove copy and clone
-#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq)]
 enum QuoteKind {
     SingleQuote,
     DoubleQuote
@@ -226,10 +226,10 @@ impl Lexer {
         for c in input.chars() {
             self.pos.col += 1;
             match literal {
-                LiteralKind::Str(quote_kind) => {
+                LiteralKind::Str(ref quote_kind) => {
                     match c {
                         '"' | '\'' => {
-                            if !char_is_escaped && quote_kind == QuoteKind::new(c) {
+                            if !char_is_escaped && quote_kind == &QuoteKind::new(c) {
                                 tokens.push(Token {
                                     token_kind: TokenKind::Literal(Literal::Str(
                                         current_identifier.to_owned(),

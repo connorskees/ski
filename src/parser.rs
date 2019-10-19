@@ -57,6 +57,7 @@ impl Parser {
 
     fn eat_stmt(&mut self) -> PResult {
         let tok = self.eat_token();
+        println!("{:?}", &tok);
         if let &TokenKind::Keyword(ref keyw) = &tok.token_kind {
             match *keyw {
                 Keyword::If => return self.eat_if(),
@@ -70,14 +71,36 @@ impl Parser {
                 Keyword::Function => return self.eat_fn_decl(),
                 _ => {}
             }
-        }
-
-        if let &TokenKind::Identifier(ref ident) = &tok.token_kind {
-            match self.peek_token() {
-                _ => {}
+        
+        } else if let &TokenKind::Symbol(Symbol::OpenBracket) = &tok.token_kind {
+            return self.eat_compound_stmt();
+        
+        } else if let &TokenKind::Identifier(ref ident) = &tok.token_kind {
+            let peek = match self.peek_token() {
+                Some(peek) => { &peek.token_kind },
+                None => &TokenKind::Eof,
+            };
+            match peek {
+                TokenKind::Symbol(Symbol::OpenParen) => return self.eat_fn_call(ident),
+                _ => {
+                    println!("{:?}", &peek);
+                    unimplemented!()
+                },
             }
         }
         unimplemented!()
+    }
+
+    fn eat_compound_stmt(&mut self) -> PResult {
+        let mut stmts: Vec<Expr> = Vec::new();
+        loop {
+            match self.eat_token().token_kind {
+                TokenKind::Eof => return Err(ParseError::Eof),
+                TokenKind::Symbol(Symbol::CloseBracket) => break,
+                _ => {}
+            }
+        }
+        Ok(Expr::Block(stmts))
     }
 
     fn eat_if(&mut self) -> PResult {
@@ -89,6 +112,15 @@ impl Parser {
     }
 
     fn eat_fn_decl(&mut self) -> PResult {
+        unimplemented!()
+    }
+
+    fn eat_fn_call(&mut self, fn_name: &String) -> PResult {
+        let params = self.eat_fn_params();
+        unimplemented!()
+    }
+
+    fn eat_fn_params(&mut self) -> Vec<String> {
         unimplemented!()
     }
 
@@ -117,9 +149,7 @@ impl Parser {
         let item = eat_ident!(self);
         expect_keyword!(self, In, "expected keyword 'in'");
         let container = self.eat_stmt()?;
-        expect_symbol!(self, OpenBracket, "expected '{'");
         let body = self.eat_stmt()?;
-        expect_symbol!(self, CloseBracket, "expected '}'");
         Ok(Expr::For(
                 Box::new(For {
                     item, container, body
@@ -143,10 +173,10 @@ impl Parser {
     }
 
     fn peek_token(&mut self) -> Option<&Token> {
-        if &self.tokens.len() <= &(self.cursor + 1) {
+        if &self.tokens.len() <= &(self.cursor) {
             None
         } else {
-            Some(&self.tokens[self.cursor+1])
+            Some(&self.tokens[self.cursor])
         }
     }
 

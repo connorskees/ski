@@ -66,6 +66,14 @@ impl Parser {
                 Keyword::Continue => return self.eat_continue(),
                 Keyword::Break => return self.eat_break(),
                 Keyword::Return => return self.eat_return(),
+                Keyword::Let => return self.eat_var_decl(),
+                Keyword::Function => return self.eat_fn_decl(),
+                _ => {}
+            }
+        }
+
+        if let &TokenKind::Identifier(ref ident) = &tok.token_kind {
+            match self.peek_token() {
                 _ => {}
             }
         }
@@ -73,6 +81,14 @@ impl Parser {
     }
 
     fn eat_if(&mut self) -> PResult {
+        unimplemented!()
+    }
+    
+    fn eat_var_decl(&mut self) -> PResult {
+        unimplemented!()
+    }
+
+    fn eat_fn_decl(&mut self) -> PResult {
         unimplemented!()
     }
 

@@ -33,7 +33,7 @@ macro_rules! eat_literal {
     }
 }
 
-macro_rules! eat_ident {
+macro_rules! eat_ident { 
     ($self:ident) => {
         match $self.eat_token().token_kind {
             TokenKind::Identifier(ref ident) => ident.to_string(),
@@ -52,7 +52,7 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> PResult {
-        self.eat_for()
+        self.eat_stmt()
     }
 
     fn eat_stmt(&mut self) -> PResult {
@@ -76,17 +76,17 @@ impl Parser {
             return self.eat_compound_stmt();
         
         } else if let &TokenKind::Identifier(ref ident) = &tok.token_kind {
-            let peek = match self.peek_token() {
-                Some(peek) => { &peek.token_kind },
-                None => &TokenKind::Eof,
-            };
-            match peek {
-                TokenKind::Symbol(Symbol::OpenParen) => return self.eat_fn_call(ident),
+            let clone = ident.clone();
+            let next_token = self.eat_token();
+            match next_token.token_kind {
+                TokenKind::Symbol(Symbol::OpenParen) => return self.eat_fn_call(clone),
                 _ => {
-                    println!("{:?}", &peek);
+                    println!("{:?}", &next_token);
                     unimplemented!()
                 },
             }
+
+           
         }
         unimplemented!()
     }
@@ -94,10 +94,12 @@ impl Parser {
     fn eat_compound_stmt(&mut self) -> PResult {
         let mut stmts: Vec<Expr> = Vec::new();
         loop {
-            match self.eat_token().token_kind {
+            match self.peek_token().unwrap().token_kind {
                 TokenKind::Eof => return Err(ParseError::Eof),
                 TokenKind::Symbol(Symbol::CloseBracket) => break,
-                _ => {}
+                _ => {
+                    stmts.push(self.eat_stmt()?);
+                }
             }
         }
         Ok(Expr::Block(stmts))
@@ -112,12 +114,47 @@ impl Parser {
     }
 
     fn eat_fn_decl(&mut self) -> PResult {
-        unimplemented!()
+        let mut params: Vec<String> = Vec::new();
+        let func_name = eat_ident!(self);
+        expect_symbol!(self, OpenParen, "expected symbol '('");
+        let tok = self.eat_token();
+        if tok.token_kind != TokenKind::Symbol(Symbol::CloseParen) {
+            loop {
+                match self.eat_token().token_kind {
+                    TokenKind::Symbol(Symbol::Comma) => continue,
+                    TokenKind::Symbol(Symbol::CloseParen) => break,
+                    _ => unimplemented!()
+                };
+                params.push(eat_ident!(self));
+            }
+        }
+        let body = self.eat_stmt()?;
+        Ok(Expr::FuncDef(
+                Box::new(FuncDef {
+                    name: func_name, params, body
+                }), 
+            )
+        )
     }
 
-    fn eat_fn_call(&mut self, fn_name: &String) -> PResult {
-        let params = self.eat_fn_params();
-        unimplemented!()
+    fn eat_fn_call(&mut self, func_name: String) -> PResult {
+        let mut params: Vec<Expr> = Vec::new();
+        loop { 
+            let tok = eat_literal!(self);
+            params.push(tok);
+            match self.eat_token().token_kind {
+                TokenKind::Symbol(Symbol::Comma) => continue,
+                TokenKind::Symbol(Symbol::CloseParen) => break,
+                _ => unimplemented!()
+            }    
+        }
+         Ok(Expr::FuncCall(
+                Box::new(FuncCall {
+                    func_name, params
+                }), 
+            )
+        )
+        
     }
 
     fn eat_fn_params(&mut self) -> Vec<String> {
@@ -125,19 +162,30 @@ impl Parser {
     }
 
     fn eat_while(&mut self) -> PResult {
-        unimplemented!()
+        expect_keyword!(self, While, "expected keyword 'while'");
+        let cond = unimplemented!();
+        let body = self.eat_stmt();
+        
     }
 
     fn eat_loop(&mut self) -> PResult {
-        unimplemented!()
+        let body = self.eat_stmt()?;
+         Ok(Expr::Loop(
+                Box::new(Loop {
+                    body
+                }), 
+            )
+        )
     }
 
     fn eat_continue(&mut self) -> PResult {
-        unimplemented!()
+        expect_symbol!(self, SemiColon, "expected symbol ';'");
+        Ok(Expr::Continue)
     }
 
     fn eat_break(&mut self) -> PResult {
-        unimplemented!()
+         expect_symbol!(self, SemiColon, "expected symbol ';'");
+        Ok(Expr::Break)
     }
 
     fn eat_return(&mut self) -> PResult {
@@ -145,7 +193,6 @@ impl Parser {
     }
 
     fn eat_for(&mut self) -> PResult {
-        expect_keyword!(self, For, "expected keyword 'for'");
         let item = eat_ident!(self);
         expect_keyword!(self, In, "expected keyword 'in'");
         let container = self.eat_stmt()?;
@@ -153,7 +200,7 @@ impl Parser {
         Ok(Expr::For(
                 Box::new(For {
                     item, container, body
-                }),
+                }), 
             )
         )
     }

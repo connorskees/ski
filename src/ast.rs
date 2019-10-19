@@ -31,8 +31,10 @@ pub enum Expr {
     FuncDef(Box<FuncDef>),
     FuncCall(Box<FuncCall>),
     While(Box<While>),
-    Loop(Box<Expr>),
+    Loop(Box<Loop>),
     For(Box<For>),
+    Continue,
+    Break,
     Block(Vec<Expr>),
 }
 
@@ -52,14 +54,14 @@ pub struct BinaryExpr {
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct FuncDef {
     pub name: String,
-    pub param_names: Vec<String>,
+    pub params: Vec<String>,
     pub body: Expr,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct FuncCall {
-    pub func: Expr,
-    pub params: Vec<Expr>
+    pub func_name: String,
+    pub params: Vec<Expr> 
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -79,6 +81,11 @@ pub struct For {
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct While {
     pub cond: Expr,
+    pub body: Expr,
+}
+
+#[derive(Debug, Hash, Eq, PartialEq)]
+pub struct Loop {
     pub body: Expr,
 }
 

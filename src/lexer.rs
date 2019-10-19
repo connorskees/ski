@@ -148,7 +148,6 @@ impl TokenKind {
     }
 }
 
-//todo: remove copy and clone
 #[derive(Debug, Hash, Eq, PartialEq)]
 enum QuoteKind {
     SingleQuote,
@@ -292,9 +291,12 @@ impl Lexer {
                             current_identifier = "";
                             integer_base = 16;
                         } else {
-                            unimplemented!()
+                            return Err(LexingError::InvalidIntegerLiteralCharacter);
                         }
                         continue;
+                    }
+                    'g'..='z' | 'G'..='Z' => {
+                        return Err(LexingError::InvalidIntegerLiteralCharacter);
                     }
                     _ => {
                         tokens.push(Token {

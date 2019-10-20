@@ -22,6 +22,7 @@ let x = 1 + 1
 pub enum Expr {
     Int(u64),
     Str(String),
+    Variable(String),
     Unary(Box<UnaryExpr>),
     Binary(Box<BinaryExpr>),
     Literal(Literal),

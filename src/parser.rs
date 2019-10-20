@@ -17,6 +17,18 @@ macro_rules! expect_keyword {
     };
 }
 
+macro_rules! expect_optional_keyword {
+    ($self:ident, $keyword:ident) => {
+        $self.expect_optional_token(&TokenKind::Keyword(Keyword::$keyword));
+    };
+}
+
+macro_rules! expect_optional_symbol {
+    ($self:ident, $symbol:ident) => {
+        $self.expect_optional_token(&TokenKind::Symbol(Symbol::$symbol));
+    };
+}
+
 macro_rules! expect_symbol {
     ($self:ident, $symbol:ident, $err:literal) => {
         $self.expect_token(&TokenKind::Symbol(Symbol::$symbol), $err)?;
@@ -38,6 +50,17 @@ macro_rules! eat_ident {
         match $self.eat_token().token_kind {
             TokenKind::Identifier(ref ident) => ident.to_string(),
             _ => return Err(ParseError::Error("expected identifier")),
+        }
+    };
+}
+
+macro_rules! eat_var_or_literal {
+    ($self:ident) => {
+        match $self.eat_token().token_kind {
+            TokenKind::Identifier(ref ident) => Expr::Variable(ident.to_string()),
+            TokenKind::Literal(Literal::Str(ref s)) => Expr::Str(s.to_string()),
+            TokenKind::Literal(Literal::Int(i)) => Expr::Int(i),
+            _ => return Err(ParseError::Error("expected identifier or literal")),
         }
     };
 }
@@ -82,6 +105,7 @@ impl Parser {
                 }
             }
         }
+        dbg!(&tok);
         unimplemented!()
     }
 
@@ -101,8 +125,14 @@ impl Parser {
 
     fn eat_if(&mut self) -> PResult {
         let cond = self.eat_expr()?;
+        dbg!(&cond);
         let then = self.eat_stmt()?;
-        let else_ = self.eat_stmt()?;
+        dbg!(&then);
+        let else_: Expr = if expect_optional_keyword!(self, Else) {
+            self.eat_stmt()?
+        } else {
+            Expr::Block(Vec::new())
+        };
         Ok(Expr::If(Box::new(If { cond, then, else_ })))
     }
 
@@ -187,7 +217,66 @@ impl Parser {
     }
 
     fn eat_expr(&mut self) -> PResult {
-        unimplemented!()
+        expect_optional_symbol!(self, OpenParen);
+        match self.peek_token().unwrap().token_kind {
+            TokenKind::Symbol(Symbol::Sub)
+            | TokenKind::Symbol(Symbol::Negate) => {
+                return self.eat_unary();
+            },
+            _ => {}
+        }
+        let left = eat_var_or_literal!(self);
+        let op = match self.peek_token().unwrap().token_kind {
+            TokenKind::Symbol(Symbol::Add) => BinaryOpKind::Add,
+            TokenKind::Symbol(Symbol::Sub) => BinaryOpKind::Sub,
+            TokenKind::Symbol(Symbol::Mul) => BinaryOpKind::Mul,
+            TokenKind::Symbol(Symbol::Div) => BinaryOpKind::Div,
+            TokenKind::Symbol(Symbol::Assign) => BinaryOpKind::Assign,
+            TokenKind::Symbol(Symbol::Eq) => BinaryOpKind::Eq,
+            TokenKind::Symbol(Symbol::Ne) => BinaryOpKind::Ne,
+            TokenKind::Symbol(Symbol::Gt) => BinaryOpKind::Gt,
+            TokenKind::Symbol(Symbol::Lt) => BinaryOpKind::Lt,
+            TokenKind::Symbol(Symbol::GtEq) => BinaryOpKind::GtEq,
+            TokenKind::Symbol(Symbol::LtEq) => BinaryOpKind::LtEq,
+            TokenKind::Symbol(Symbol::Shr) => BinaryOpKind::Shr,
+            TokenKind::Symbol(Symbol::Shl) => BinaryOpKind::Shl,
+            TokenKind::Symbol(Symbol::Xor) => BinaryOpKind::Xor,
+            TokenKind::Symbol(Symbol::LogicalAnd) => BinaryOpKind::LogicalAnd,
+            TokenKind::Symbol(Symbol::LogicalOr) => BinaryOpKind::LogicalOr,
+            TokenKind::Symbol(Symbol::BinaryAnd) => BinaryOpKind::BinaryAnd,
+            TokenKind::Symbol(Symbol::BinaryOr) => BinaryOpKind::BinaryOr,
+            TokenKind::Symbol(Symbol::CloseParen) => BinaryOpKind::BinaryOr,
+            _ => return Ok(left)
+        };
+        self.eat_token();
+        let right = self.eat_expr()?;
+        expect_optional_symbol!(self, CloseParen);
+        Ok(Expr::Binary(Box::new(BinaryExpr { left, op, right })))
+    }
+
+    fn eat_binary(&mut self) -> PResult {
+        let left = eat_literal!(self);
+        let op = match self.eat_token().token_kind {
+            TokenKind::Symbol(Symbol::Add) => BinaryOpKind::Add,
+            _ => unimplemented!()
+        };
+        let right = eat_literal!(self);
+        Ok(Expr::Binary(Box::new(BinaryExpr { left, op, right })))
+    }
+
+    fn eat_unary(&mut self) -> PResult {
+        let op = match self.eat_token().token_kind {
+            TokenKind::Symbol(Symbol::Sub) => UnaryOpKind::Minus,
+            TokenKind::Symbol(Symbol::Negate) => UnaryOpKind::Negate,
+            _ => unimplemented!()
+        };
+        dbg!(&op);
+        let child = match self.peek_token().unwrap().token_kind {
+            TokenKind::Symbol(Symbol::OpenParen) => self.eat_expr()?,
+            _ => eat_var_or_literal!(self),
+        };
+        dbg!(&child);
+        Ok(Expr::Unary(Box::new(UnaryExpr { op, child })))
     }
 
     fn expect_token(&mut self, t: &TokenKind, msg: &'static str) -> Result<(), &'static str> {
@@ -196,6 +285,15 @@ impl Parser {
         } else {
             self.cursor += 1;
             Ok(())
+        }
+    }
+
+    fn expect_optional_token(&mut self, t: &TokenKind) -> bool {
+        if t != &self.tokens[self.cursor].token_kind {
+            false
+        } else {
+            self.cursor += 1;
+            true
         }
     }
 

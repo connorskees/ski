@@ -35,36 +35,6 @@ macro_rules! expect_symbol {
     };
 }
 
-macro_rules! eat_literal {
-    ($self:ident) => {
-        match $self.eat_token().token_kind {
-            TokenKind::Literal(Literal::Str(ref s)) => Expr::Str(s.to_string()),
-            TokenKind::Literal(Literal::Int(i)) => Expr::Int(i),
-            _ => return Err(ParseError::Error("expected literal")),
-        };
-    };
-}
-
-macro_rules! eat_ident {
-    ($self:ident) => {
-        match $self.eat_token().token_kind {
-            TokenKind::Identifier(ref ident) => ident.to_string(),
-            _ => return Err(ParseError::Error("expected identifier")),
-        }
-    };
-}
-
-macro_rules! eat_var_or_literal {
-    ($self:ident) => {
-        match $self.eat_token().token_kind {
-            TokenKind::Identifier(ref ident) => Expr::Variable(ident.to_string()),
-            TokenKind::Literal(Literal::Str(ref s)) => Expr::Str(s.to_string()),
-            TokenKind::Literal(Literal::Int(i)) => Expr::Int(i),
-            _ => return Err(ParseError::Error("expected identifier or literal")),
-        }
-    };
-}
-
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Parser {
         Parser {
@@ -142,11 +112,11 @@ impl Parser {
 
     fn eat_fn_decl(&mut self) -> PResult {
         let mut params: Vec<String> = Vec::new();
-        let name = eat_ident!(self);
+        let name = self.eat_ident()?;
         expect_symbol!(self, OpenParen, "expected symbol '('");
         if let TokenKind::Identifier(_) = self.peek_token().unwrap().token_kind {
             loop {
-                params.push(eat_ident!(self));
+                params.push(self.eat_ident()?);
                 match self.eat_token().token_kind {
                     TokenKind::Symbol(Symbol::Comma) => continue,
                     TokenKind::Symbol(Symbol::CloseParen) => break,
@@ -168,7 +138,7 @@ impl Parser {
         let mut params: Vec<Expr> = Vec::new();
         loop {
             // TODO: let tok = self.eat_expr();
-            let tok = eat_literal!(self);
+            let tok = self.eat_literal()?;
             params.push(tok);
             match self.eat_token().token_kind {
                 TokenKind::Symbol(Symbol::Comma) => continue,
@@ -205,7 +175,7 @@ impl Parser {
     }
 
     fn eat_for(&mut self) -> PResult {
-        let item = eat_ident!(self);
+        let item = self.eat_ident()?;
         expect_keyword!(self, In, "expected keyword 'in'");
         let container = self.eat_stmt()?;
         let body = self.eat_stmt()?;
@@ -225,7 +195,7 @@ impl Parser {
             },
             _ => {}
         }
-        let left = eat_var_or_literal!(self);
+        let left = self.eat_var_or_literal()?;
         let op = match self.peek_token().unwrap().token_kind {
             TokenKind::Symbol(Symbol::Add) => BinaryOpKind::Add,
             TokenKind::Symbol(Symbol::Sub) => BinaryOpKind::Sub,
@@ -255,12 +225,12 @@ impl Parser {
     }
 
     fn eat_binary(&mut self) -> PResult {
-        let left = eat_literal!(self);
+        let left = self.eat_literal()?;
         let op = match self.eat_token().token_kind {
             TokenKind::Symbol(Symbol::Add) => BinaryOpKind::Add,
             _ => unimplemented!()
         };
-        let right = eat_literal!(self);
+        let right = self.eat_literal()?;
         Ok(Expr::Binary(Box::new(BinaryExpr { left, op, right })))
     }
 
@@ -273,10 +243,35 @@ impl Parser {
         dbg!(&op);
         let child = match self.peek_token().unwrap().token_kind {
             TokenKind::Symbol(Symbol::OpenParen) => self.eat_expr()?,
-            _ => eat_var_or_literal!(self),
+            _ => self.eat_var_or_literal()?,
         };
         dbg!(&child);
         Ok(Expr::Unary(Box::new(UnaryExpr { op, child })))
+    }
+
+    fn eat_literal(&mut self) -> PResult {
+        match self.eat_token().token_kind {
+            TokenKind::Literal(Literal::Str(ref s)) => Ok(Expr::Str(s.to_string())),
+            TokenKind::Literal(Literal::Int(i)) => Ok(Expr::Int(i)),
+            _ => Err(ParseError::Error("expected literal")),
+        }
+    }
+
+    fn eat_ident(&mut self) -> Result<String, ParseError> {
+        match self.eat_token().token_kind {
+            TokenKind::Identifier(ref ident) => Ok(ident.to_string()),
+            _ => Err(ParseError::Error("expected identifier")),
+        }
+    }
+
+
+    fn eat_var_or_literal(&mut self) -> PResult {
+        match self.eat_token().token_kind {
+            TokenKind::Identifier(ref ident) => Ok(Expr::Variable(ident.to_string())),
+            TokenKind::Literal(Literal::Str(ref s)) => Ok(Expr::Str(s.to_string())),
+            TokenKind::Literal(Literal::Int(i)) => Ok(Expr::Int(i)),
+            _ => Err(ParseError::Error("expected identifier or literal")),
+        }
     }
 
     fn expect_token(&mut self, t: &TokenKind, msg: &'static str) -> Result<(), &'static str> {

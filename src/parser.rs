@@ -133,8 +133,7 @@ impl Parser {
     fn eat_fn_call(&mut self, func_name: String) -> PResult {
         let mut params: Vec<Expr> = Vec::new();
         loop {
-            // TODO: let tok = self.eat_expr();
-            let tok = self.eat_literal()?;
+            let tok = self.eat_expr()?;
             params.push(tok);
             match self.eat_token().token_kind {
                 TokenKind::Symbol(Symbol::Comma) => continue,
@@ -183,7 +182,7 @@ impl Parser {
     }
 
     fn eat_expr(&mut self) -> PResult {
-        expect_optional_symbol!(self, OpenParen);
+        let has_open_paren = expect_optional_symbol!(self, OpenParen);
         match self.peek_token()?.token_kind {
             TokenKind::Symbol(Symbol::Sub)
             | TokenKind::Symbol(Symbol::LogicalNot)
@@ -195,14 +194,17 @@ impl Parser {
         }
 
         macro_rules! bin_op {
-            ($self:ident, $left:ident, $( $type:ident ),*) => {
+            ($self:ident, $left:ident, $open_paren:ident, $( $type:ident ),*) => {
                 match $self.peek_token()?.token_kind {
                     $(TokenKind::Symbol(Symbol::$type) => BinaryOpKind::$type,)*
                     TokenKind::Symbol(Symbol::CloseParen) => {
-                        $self.eat_token();
+                        if $open_paren {
+                            $self.eat_token();
+                        }
                         return Ok($left)
                     },
                     TokenKind::Eof => return Err(ParseError::Eof),
+                    TokenKind::Literal(_) => return Ok(self.eat_literal()?),
                     _ => return Ok($left)
                 }
             }
@@ -210,12 +212,14 @@ impl Parser {
 
         let left = self.eat_var_or_literal()?;
         let op = bin_op!(
-            self, left, Add, Sub, Mul, Div, Assign, Eq, Ne, Gt, Lt, GtEq, LtEq, Shr, Shl, Xor,
+            self, left, has_open_paren, Add, Sub, Mul, Div, Assign, Eq, Ne, Gt, Lt, GtEq, LtEq, Shr, Shl, Xor,
             LogicalAnd, LogicalOr, BinaryAnd, BinaryOr
         );
         self.eat_token();
         let right = self.eat_expr()?;
-        expect_optional_symbol!(self, CloseParen);
+        if has_open_paren {
+            expect_symbol!(self, CloseParen, "expected ')'");
+        }
         Ok(Expr::Binary(Box::new(BinaryExpr { left, op, right })))
     }
 

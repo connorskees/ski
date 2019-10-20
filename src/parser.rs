@@ -64,7 +64,7 @@ impl Parser {
                 _ => {}
             }
         } else if let &TokenKind::Symbol(Symbol::OpenBracket) = &tok.token_kind {
-            return self.eat_compound_stmt();
+            return self.eat_block();
         } else if let &TokenKind::Identifier(ref ident) = &tok.token_kind {
             let clone = ident.clone();
             let next_token = self.eat_token();
@@ -80,7 +80,7 @@ impl Parser {
         unimplemented!()
     }
 
-    fn eat_compound_stmt(&mut self) -> PResult {
+    fn eat_block(&mut self) -> PResult {
         let mut stmts: Vec<Expr> = Vec::new();
         loop {
             match self.peek_token()?.token_kind {

@@ -259,7 +259,7 @@ impl Parser {
             TokenKind::Symbol(Symbol::Sub) => UnaryOpKind::Minus,
             TokenKind::Symbol(Symbol::LogicalNot) => UnaryOpKind::LogicalNot,
             TokenKind::Symbol(Symbol::BitwiseNot) => UnaryOpKind::BitwiseNot,
-            _ => unimplemented!(),
+            _ => unreachable!(),
         };
         dbg!(&op);
         let child = match self.peek_token()?.token_kind {

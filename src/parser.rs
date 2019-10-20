@@ -67,13 +67,10 @@ impl Parser {
             return self.eat_block();
         } else if let &TokenKind::Identifier(ref ident) = &tok.token_kind {
             let clone = ident.clone();
-            let next_token = self.eat_token();
-            match next_token.token_kind {
+            match self.peek_token()?.token_kind {
                 TokenKind::Symbol(Symbol::OpenParen) => return self.eat_fn_call(clone),
-                _ => {
-                    println!("{:?}", &next_token);
-                    unimplemented!()
-                }
+                TokenKind::Symbol(_) => return self.eat_mut_assign(clone),
+                _ => return Err(ParseError::Error("unexpected token following identifier"))
             }
         }
         dbg!(&tok);
@@ -150,6 +147,7 @@ impl Parser {
     }
 
     fn eat_fn_call(&mut self, func_name: String) -> PResult {
+        expect_symbol!(self, OpenParen, "expected '('");
         let mut params: Vec<Expr> = Vec::new();
         loop {
             let tok = self.eat_expr()?;

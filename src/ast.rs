@@ -11,8 +11,8 @@ let x = 1 + 1
 //         value: Expr::Binary(
 //             Box<BinaryExpr{
 //                 op: Add,
-//                 left: Expr::Literal(Literal(Int(1))),
-//                 right: Expr::Literal(Literal(Int(1))),
+//                 left: Expr::(Int(1),
+//                 right: Expr::(Int(1),
 //             }>
 //         )
 //     }
@@ -25,7 +25,7 @@ pub enum Expr {
     Unary(Box<UnaryExpr>),
     Binary(Box<BinaryExpr>),
     Literal(Literal),
-    Return(Option<Box<Expr>>),
+    Return(Box<Expr>),
     VariableDecl(Box<VariableDecl>),
     If(Box<If>),
     FuncDef(Box<FuncDef>),

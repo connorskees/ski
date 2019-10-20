@@ -54,7 +54,7 @@ impl Compile for Vec<Expr> {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    fn compile_batch(&self) -> String {
+    fn compile_bash(&self) -> String {
         unimplemented!()
     }
 }
@@ -89,17 +89,33 @@ impl Compile for Expr {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    fn compile_batch(&self) -> String {
+    fn compile_bash(&self) -> String {
         unimplemented!()
     }
 }
-
-
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct UnaryExpr {
     pub op: UnaryOpKind,
     pub child: Expr,
+}
+
+impl Compile for UnaryExpr {
+    fn compile(&self, t: &Target) -> String {
+        unimplemented!()
+    }
+
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_bash(&self) -> String {
+        unimplemented!()
+    }
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -109,11 +125,47 @@ pub struct BinaryExpr {
     pub right: Expr,
 }
 
+impl Compile for BinaryExpr {
+    fn compile(&self, t: &Target) -> String {
+        unimplemented!()
+    }
+
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_bash(&self) -> String {
+        unimplemented!()
+    }
+}
+
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct FuncDef {
     pub name: String,
     pub params: Vec<String>,
     pub body: Expr,
+}
+
+impl Compile for FuncDef {
+    fn compile(&self, t: &Target) -> String {
+        unimplemented!()
+    }
+
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_bash(&self) -> String {
+        unimplemented!()
+    }
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -133,7 +185,7 @@ impl Compile for FuncCall {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    fn compile_batch(&self) -> String {
+    fn compile_bash(&self) -> String {
         unimplemented!()
     }
 }
@@ -143,6 +195,24 @@ pub struct If {
     pub cond: Expr,
     pub then: Expr,
     pub else_: Expr,
+}
+
+impl Compile for If {
+    fn compile(&self, t: &Target) -> String {
+        unimplemented!()
+    }
+
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_bash(&self) -> String {
+        unimplemented!()
+    }
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -155,15 +225,18 @@ pub struct For {
 /// FOR %%item IN (set) DO command
 impl Compile for For {
     fn compile(&self, t: &Target) -> String {
-        format!("FOR %%{} IN {} DO {}", self.item, self.container.compile(t), self.body.compile(t))
+        format!("FOR %%{} IN {} DO (\n{})\n", self.item, self.container.compile(t), self.body.compile(t))
     }
+
     fn compile_asm(&self) -> String {
         unimplemented!()
     }
+
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    fn compile_batch(&self) -> String {
+    
+    fn compile_bash(&self) -> String {
         unimplemented!()
     }
 }
@@ -183,13 +256,16 @@ impl Compile for Loop {
     fn compile(&self, t: &Target) -> String {
         format!(":LOOP\n{}\ngoto :LOOP", self.body.compile(t))
     }
+    
     fn compile_asm(&self) -> String {
         unimplemented!()
     }
+    
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    fn compile_batch(&self) -> String {
+    
+    fn compile_bash(&self) -> String {
         unimplemented!()
     }
 }
@@ -200,10 +276,46 @@ pub struct VariableDecl {
     pub value: Expr,
 }
 
+impl Compile for VariableDecl {
+    fn compile(&self, t: &Target) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_bash(&self) -> String {
+        unimplemented!()
+    }
+}
+
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct ConstDecl {
     pub name: String,
     pub value: Expr,
+}
+
+impl Compile for ConstDecl {
+    fn compile(&self, t: &Target) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    
+    fn compile_bash(&self) -> String {
+        unimplemented!()
+    }
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]

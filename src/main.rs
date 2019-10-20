@@ -6,7 +6,7 @@ use std::io::{self, stdin};
 
 use lexer::Lexer;
 use parser::Parser;
-use compiler::Compiler;
+use compiler::{Compiler, Target};
 
 mod ast;
 mod compiler;
@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
     let x = parser.parse().unwrap();
 
     let mut compiler = Compiler::new(x);
-    compiler.compile("test2.cmd")?;
+    compiler.compile("test2.cmd", Target::DOS)?;
     
     // println!("{:?}", x);
 

@@ -96,7 +96,6 @@ impl Parser {
 
     fn eat_if(&mut self) -> PResult {
         let cond = self.eat_expr()?;
-        dbg!(&cond);
         let then = self.eat_stmt()?;
         dbg!(&then);
         let else_: Expr = if expect_optional_keyword!(self, Else) {
@@ -173,6 +172,7 @@ impl Parser {
                 _ => return Err(ParseError::Error("expected ',' or ')'")),
             }
         }
+        expect_optional_symbol!(self, SemiColon);
         Ok(Expr::FuncCall(Box::new(FuncCall { func_name, params })))
     }
 
@@ -270,6 +270,33 @@ impl Parser {
             _ => self.eat_var_or_literal()?,
         };
         dbg!(&child);
+        macro_rules! is_op_next {
+            ($self:ident, $( $type:ident ),*) => {
+                match $self.peek_token()?.token_kind {
+                    $(TokenKind::Symbol(Symbol::$type) | )* TokenKind::Symbol(Symbol::Add) => {
+                        return Ok(
+                            Expr::Binary(
+                                Box::new(
+                                    BinaryExpr {
+                                        left: Expr::Unary(Box::new(UnaryExpr { op, child })),
+                                        op: BinaryOpKind::from_token(&self.eat_token().token_kind)?,
+                                        right: self.eat_expr()?,
+                                    }
+                                )
+                            )
+                        )
+                    },
+                    TokenKind::Eof => return Err(ParseError::Eof),
+                    TokenKind::Literal(_) => return Ok(self.eat_literal()?),
+                    _ => unimplemented!()
+                }
+            }
+        };
+
+        is_op_next!(
+            self, Add, Sub, Mul, Div, Assign, Eq, Ne, Gt, Lt, GtEq,
+            LtEq, Shr, Shl, Xor, LogicalAnd, LogicalOr, BinaryAnd, BinaryOr
+        );
         Ok(Expr::Unary(Box::new(UnaryExpr { op, child })))
     }
 

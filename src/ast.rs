@@ -1,4 +1,4 @@
-use crate::lexer::{Literal, TokenKind};
+use crate::lexer::{Literal, TokenKind, Symbol};
 use std::boxed::Box;
 
 /*
@@ -130,4 +130,34 @@ pub enum BinaryOpKind {
     LogicalOr,
     BinaryAnd,
     BinaryOr,
+}
+
+impl BinaryOpKind {
+    pub fn from_token(t: &TokenKind) -> Result<BinaryOpKind, &'static str>  {
+        if let TokenKind::Symbol(ref sym) = t {
+            return match *sym {
+                Symbol::Add => Ok(BinaryOpKind::Add),
+                Symbol::Sub => Ok(BinaryOpKind::Sub),
+                Symbol::Mul => Ok(BinaryOpKind::Mul),
+                Symbol::Div => Ok(BinaryOpKind::Div),
+                Symbol::Assign => Ok(BinaryOpKind::Assign),
+                Symbol::Eq => Ok(BinaryOpKind::Eq),
+                Symbol::Ne => Ok(BinaryOpKind::Ne),
+                Symbol::Gt => Ok(BinaryOpKind::Gt),
+                Symbol::Lt => Ok(BinaryOpKind::Lt),
+                Symbol::GtEq => Ok(BinaryOpKind::GtEq),
+                Symbol::LtEq => Ok(BinaryOpKind::LtEq),
+                Symbol::Shr => Ok(BinaryOpKind::Shr),
+                Symbol::Shl => Ok(BinaryOpKind::Shl),
+                Symbol::Xor => Ok(BinaryOpKind::Xor),
+                Symbol::LogicalAnd => Ok(BinaryOpKind::LogicalAnd),
+                Symbol::LogicalOr => Ok(BinaryOpKind::LogicalOr),
+                Symbol::BinaryAnd => Ok(BinaryOpKind::BinaryAnd),
+                Symbol::BinaryOr => Ok(BinaryOpKind::BinaryOr),
+                _ => Err("unexpected symbol type")
+            }
+        } else {
+            Err("unexpected token type")
+        }
+    }
 }

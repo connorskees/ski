@@ -16,7 +16,7 @@ impl std::convert::From<regex::Error> for LexingError {
 #[derive(Debug)]
 pub enum ParseError {
     Eof,
-    Error(&'static str)
+    Error(&'static str),
 }
 
 impl std::convert::From<&'static str> for ParseError {

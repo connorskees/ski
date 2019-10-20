@@ -63,14 +63,14 @@ pub struct FuncDef {
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct FuncCall {
     pub func_name: String,
-    pub params: Vec<Expr> 
+    pub params: Vec<Expr>,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct If {
     pub cond: Expr,
     pub then: Expr,
-    pub else_: Expr
+    pub else_: Expr,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]

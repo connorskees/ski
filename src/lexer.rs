@@ -153,7 +153,7 @@ impl TokenKind {
 #[derive(Debug, Hash, Eq, PartialEq)]
 enum QuoteKind {
     SingleQuote,
-    DoubleQuote
+    DoubleQuote,
 }
 
 impl QuoteKind {
@@ -161,7 +161,7 @@ impl QuoteKind {
         match q {
             '\'' => QuoteKind::SingleQuote,
             '"' => QuoteKind::DoubleQuote,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -245,27 +245,27 @@ impl Lexer {
                                 literal = LiteralKind::None;
                                 continue;
                             }
-                        },
+                        }
                         '\\' => {
                             char_is_escaped = !char_is_escaped;
                             if char_is_escaped {
                                 continue;
                             }
-                        },
+                        }
                         'n' | 'r' | 't' => {
                             if char_is_escaped {
                                 let escaped_char: char = match c {
                                     'n' => '\n',
                                     'r' => '\r',
                                     't' => '\t',
-                                    _ => unreachable!()
+                                    _ => unreachable!(),
                                 };
                                 ci = format!("{}{}", current_identifier, escaped_char);
                                 current_identifier = ci.as_ref();
                                 char_is_escaped = false;
                                 continue;
                             }
-                        },
+                        }
                         _ => {}
                     }
 
@@ -397,13 +397,13 @@ impl Lexer {
                 '<' => double_identifier!("<", current_identifier, tokens, self),
                 '!' => {
                     if current_identifier != "" {
-                            tokens.push(Token {
-                                token_kind: TokenKind::new(current_identifier),
-                                pos: self.pos,
-                            });
-                        }
-                        current_identifier = "!";
-                },
+                        tokens.push(Token {
+                            token_kind: TokenKind::new(current_identifier),
+                            pos: self.pos,
+                        });
+                    }
+                    current_identifier = "!";
+                }
                 '0'..='9' => {
                     literal = LiteralKind::Int;
                     if current_identifier != "" {

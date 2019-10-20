@@ -73,7 +73,7 @@ impl Parser {
                 | TokenKind::Symbol(Symbol::SubAssign)
                 | TokenKind::Symbol(Symbol::MulAssign)
                 | TokenKind::Symbol(Symbol::DivAssign) => return self.eat_mut_assign(clone),
-                _ => return Err(ParseError::Error("unexpected token following identifier"))
+                _ => return Err(ParseError::Error("unexpected token following identifier")),
             }
         }
         dbg!(&tok);
@@ -117,12 +117,12 @@ impl Parser {
 
     fn eat_var_decl(&mut self) -> PResult {
         let (name, value) = self.eat_assign()?;
-        Ok(Expr::VariableDecl(Box::new(VariableDecl{ name, value })))
+        Ok(Expr::VariableDecl(Box::new(VariableDecl { name, value })))
     }
 
     fn eat_const_decl(&mut self) -> PResult {
         let (name, value) = self.eat_assign()?;
-        Ok(Expr::ConstDecl(Box::new(ConstDecl{ name, value })))
+        Ok(Expr::ConstDecl(Box::new(ConstDecl { name, value })))
     }
 
     fn eat_mut_assign(&mut self, name: String) -> PResult {
@@ -131,10 +131,14 @@ impl Parser {
             TokenKind::Symbol(Symbol::SubAssign) => BinaryOpKind::Sub,
             TokenKind::Symbol(Symbol::MulAssign) => BinaryOpKind::Mul,
             TokenKind::Symbol(Symbol::DivAssign) => BinaryOpKind::Div,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         let right = self.eat_expr()?;
-        Ok(Expr::Binary(Box::new(BinaryExpr{ left: Expr::Variable(name), op, right })))
+        Ok(Expr::Binary(Box::new(BinaryExpr {
+            left: Expr::Variable(name),
+            op,
+            right,
+        })))
     }
 
     fn eat_fn_decl(&mut self) -> PResult {
@@ -218,7 +222,7 @@ impl Parser {
             | TokenKind::Symbol(Symbol::LogicalNot)
             | TokenKind::Symbol(Symbol::BitwiseNot) => {
                 return self.eat_unary();
-            },
+            }
             TokenKind::Eof => return Err(ParseError::Eof),
             _ => {}
         }

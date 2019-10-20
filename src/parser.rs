@@ -166,7 +166,9 @@ impl Parser {
     }
 
     fn eat_return(&mut self) -> PResult {
-        unimplemented!()
+        let expr = self.eat_expr()?;
+        expect_symbol!(self, SemiColon, "expected ';'");
+        Ok(Expr::Return(Box::new(expr)))
     }
 
     fn eat_for(&mut self) -> PResult {

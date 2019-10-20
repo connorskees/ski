@@ -65,7 +65,8 @@ pub enum Symbol {
     BinaryAnd,
     BinaryOr,
     Comma,
-    Negate,
+    LogicalNot,
+    BitwiseNot,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]
@@ -116,7 +117,8 @@ impl TokenKind {
             "=" => TokenKind::Symbol(Symbol::Assign),
             "==" => TokenKind::Symbol(Symbol::Eq),
             "!=" => TokenKind::Symbol(Symbol::Ne),
-            "!" => TokenKind::Symbol(Symbol::Negate),
+            "!" => TokenKind::Symbol(Symbol::LogicalNot),
+            "~" => TokenKind::Symbol(Symbol::BitwiseNot),
             ";" => TokenKind::Symbol(Symbol::SemiColon),
             "," => TokenKind::Symbol(Symbol::Comma),
             "'" => TokenKind::Symbol(Symbol::SingleQuote),
@@ -334,7 +336,7 @@ impl Lexer {
                     self.pos.row += 1;
                     self.pos.col = 0;
                 }
-                '{' | '}' | '(' | ')' | ';' | '^' | ',' => {
+                '{' | '}' | '(' | ')' | ';' | '^' | ',' | '~' => {
                     if current_identifier != "" {
                         tokens.push(Token {
                             token_kind: TokenKind::new(current_identifier),

@@ -184,8 +184,10 @@ impl Parser {
 
     fn eat_expr(&mut self) -> PResult {
         expect_optional_symbol!(self, OpenParen);
-        match self.peek_token().unwrap().token_kind {
-            TokenKind::Symbol(Symbol::Sub) | TokenKind::Symbol(Symbol::Negate) => {
+        match self.peek_token()?.token_kind {
+            TokenKind::Symbol(Symbol::Sub)
+            | TokenKind::Symbol(Symbol::LogicalNot)
+            | TokenKind::Symbol(Symbol::BitwiseNot) => {
                 return self.eat_unary();
             }
             _ => {}
@@ -225,7 +227,8 @@ impl Parser {
     fn eat_unary(&mut self) -> PResult {
         let op = match self.eat_token().token_kind {
             TokenKind::Symbol(Symbol::Sub) => UnaryOpKind::Minus,
-            TokenKind::Symbol(Symbol::Negate) => UnaryOpKind::Negate,
+            TokenKind::Symbol(Symbol::LogicalNot) => UnaryOpKind::LogicalNot,
+            TokenKind::Symbol(Symbol::BitwiseNot) => UnaryOpKind::BitwiseNot,
             _ => unimplemented!(),
         };
         dbg!(&op);

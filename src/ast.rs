@@ -99,7 +99,8 @@ pub struct VariableDecl {
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub enum UnaryOpKind {
     Minus,
-    Negate
+    LogicalNot,
+    BitwiseNot,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]

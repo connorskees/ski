@@ -28,7 +28,7 @@ macro_rules! eat_literal {
         match $self.eat_token().token_kind {
             TokenKind::Literal(Literal::Str(ref s)) => Expr::Str(s.to_string()),
             TokenKind::Literal(Literal::Int(i)) => Expr::Int(i),
-            _ => unreachable!()
+            _ => return Err(ParseError::Error("expected literal"))
         };
     }
 }
@@ -37,7 +37,7 @@ macro_rules! eat_ident {
     ($self:ident) => {
         match $self.eat_token().token_kind {
             TokenKind::Identifier(ref ident) => ident.to_string(),
-            _ => unreachable!()
+            _ => return Err(ParseError::Error("expected identifier"))
         }
         
     }

@@ -104,7 +104,7 @@ impl Parser {
         Ok(Expr::If(Box::new(If { cond, then, else_ })))
     }
 
-    fn eat_assign(&mut self, is_const: bool) -> Result<(String, Expr), ParseError> {
+    fn eat_assign(&mut self) -> Result<(String, Expr), ParseError> {
         let name = self.eat_ident()?;
         expect_symbol!(self, Assign, "expected '='");
         let value = self.eat_expr()?;
@@ -113,12 +113,12 @@ impl Parser {
     }
 
     fn eat_var_decl(&mut self) -> PResult {
-        let (name, value) = self.eat_assign(false)?;
+        let (name, value) = self.eat_assign()?;
         Ok(Expr::VariableDecl(Box::new(VariableDecl{ name, value })))
     }
 
     fn eat_const_decl(&mut self) -> PResult {
-        let (name, value) = self.eat_assign(true)?;
+        let (name, value) = self.eat_assign()?;
         Ok(Expr::ConstDecl(Box::new(ConstDecl{ name, value })))
     }
 

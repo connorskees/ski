@@ -51,17 +51,18 @@ impl Parser {
         let tok = self.eat_token();
         if let &TokenKind::Keyword(ref keyw) = &tok.token_kind {
             match *keyw {
-                Keyword::If => return self.eat_if(),
-                Keyword::For => return self.eat_for(),
-                Keyword::While => return self.eat_while(),
-                Keyword::Loop => return self.eat_loop(),
-                Keyword::Continue => return self.eat_continue(),
-                Keyword::Break => return self.eat_break(),
-                Keyword::Return => return self.eat_return(),
+                Keyword::Function => return self.eat_fn_decl(),
                 Keyword::Let => return self.eat_var_decl(),
                 Keyword::Const => return self.eat_const_decl(),
-                Keyword::Function => return self.eat_fn_decl(),
-                _ => {}
+                Keyword::For => return self.eat_for(),
+                Keyword::In => unreachable!(),
+                Keyword::While => return self.eat_while(),
+                Keyword::Loop => return self.eat_loop(),
+                Keyword::Return => return self.eat_return(),
+                Keyword::If => return self.eat_if(),
+                Keyword::Else => unreachable!(),
+                Keyword::Continue => return self.eat_continue(),
+                Keyword::Break => return self.eat_break(),
             }
         } else if let &TokenKind::Symbol(Symbol::OpenBracket) = &tok.token_kind {
             return self.eat_block();
@@ -291,6 +292,7 @@ impl Parser {
 
         macro_rules! is_op_next {
             ($self:ident, $( $type:ident ),*) => {
+                #[allow(unreachable_patterns)]
                 match $self.peek_token()?.token_kind {
                     $(TokenKind::Symbol(Symbol::$type) | )* TokenKind::Symbol(Symbol::Add) => {
                         return Ok(
@@ -305,9 +307,7 @@ impl Parser {
                             )
                         )
                     },
-                    TokenKind::Eof => return Err(ParseError::Eof),
-                    TokenKind::Literal(_) => return Ok(self.eat_literal()?),
-                    _ => unimplemented!()
+                    _ => {}
                 }
             }
         };

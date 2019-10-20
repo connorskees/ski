@@ -97,7 +97,6 @@ impl Parser {
     fn eat_if(&mut self) -> PResult {
         let cond = self.eat_expr()?;
         let then = self.eat_stmt()?;
-        dbg!(&then);
         let else_: Expr = if expect_optional_keyword!(self, Else) {
             self.eat_stmt()?
         } else {
@@ -133,6 +132,7 @@ impl Parser {
             _ => unreachable!(),
         };
         let right = self.eat_expr()?;
+        expect_symbol!(self, SemiColon, "expected ';'");
         Ok(Expr::Binary(Box::new(BinaryExpr {
             left: Expr::Variable(name),
             op,

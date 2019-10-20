@@ -1,5 +1,12 @@
 use crate::lexer::{Literal, Symbol, TokenKind};
 use std::boxed::Box;
+use std::fmt;
+// use std::io::Write;
+use std::fmt::Write;
+
+pub trait Compile {
+    fn compile(&self) -> String;
+}
 
 /*
 let x = 1 + 1
@@ -40,6 +47,41 @@ pub enum Expr {
     Block(Vec<Expr>),
 }
 
+impl Compile for Vec<Expr> {
+    fn compile(&self) -> String {
+        self.iter().map(|s| s.compile()).collect::<Vec<String>>().join("\n")
+    }
+}
+
+impl Compile for Expr {
+    fn compile(&self) -> String {
+        use Expr::*;
+        match self {
+            Int(_) => unimplemented!(),
+            Str(_) => unimplemented!(),
+            Variable(_) => unimplemented!(),
+            Unary(_) => unimplemented!(),
+            Binary(_) => unimplemented!(),
+            Literal(_) => unimplemented!(),
+            Return(_) => unimplemented!(),
+            VariableDecl(_) => unimplemented!(),
+            ConstDecl(_) => unimplemented!(),
+            If(_) => unimplemented!(),
+            FuncDef(_) => unimplemented!(),
+            FuncCall(c) => c.compile(),
+            While(_) => unimplemented!(),
+            Loop(_) => unimplemented!(),
+            For(f) => f.compile(),
+            Continue => unimplemented!(),
+            Break => unimplemented!(),
+            Block(b) => b.compile(),
+        }
+        // FOR %%item IN (set) DO command
+    }
+}
+
+
+
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct UnaryExpr {
     pub op: UnaryOpKind,
@@ -66,6 +108,13 @@ pub struct FuncCall {
     pub params: Vec<Expr>,
 }
 
+impl Compile for FuncCall {
+    fn compile(&self) -> String {
+        format!("(1, 2, 3, 4)")
+        // format!("GOTO :{}\n{}", self.func_name, self.params.join("SET /A x = "))
+    }
+}
+
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct If {
     pub cond: Expr,
@@ -80,6 +129,13 @@ pub struct For {
     pub body: Expr,
 }
 
+/// FOR %%item IN (set) DO command
+impl Compile for For {
+    fn compile(&self) -> String {
+        format!("FOR %%{} IN {} DO {}", self.item, self.container.compile(), self.body.compile())
+    }
+}
+
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct While {
     pub cond: Expr,
@@ -89,6 +145,12 @@ pub struct While {
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct Loop {
     pub body: Expr,
+}
+
+impl Compile for Loop {
+    fn compile(&self) -> String {
+        format!(":LOOP\n{}\ngoto :LOOP", self.body.compile())
+    }
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]

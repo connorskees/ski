@@ -1,4 +1,4 @@
-use crate::lexer::{TokenKind, Literal};
+use crate::lexer::{Literal, TokenKind};
 use std::boxed::Box;
 
 /*

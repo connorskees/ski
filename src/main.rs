@@ -1,14 +1,14 @@
 #![deny(missing_debug_implementations)]
 #![allow(dead_code, unused_imports)]
-use std::io::{self, stdin};
-use std::io::prelude::*;
-use std::fs::File;
 use lexer::Lexer;
 use parser::Parser;
+use std::fs::File;
+use std::io::prelude::*;
+use std::io::{self, stdin};
 
-mod lexer;
-mod errors;
 mod ast;
+mod errors;
+mod lexer;
 mod parser;
 
 fn main() -> io::Result<()> {

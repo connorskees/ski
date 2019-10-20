@@ -303,7 +303,7 @@ impl Lexer {
                     _ => {
                         tokens.push(Token {
                             token_kind: TokenKind::Literal(Literal::Int(
-                                u64::from_str_radix(current_identifier, integer_base).unwrap(),
+                                u64::from_str_radix(current_identifier, integer_base)?,
                             )),
                             pos: self.pos,
                         });
@@ -437,7 +437,7 @@ impl Lexer {
             LiteralKind::Int => {
                 tokens.push(Token {
                     token_kind: TokenKind::Literal(Literal::Int(
-                        u64::from_str_radix(current_identifier, integer_base).unwrap(),
+                        u64::from_str_radix(current_identifier, integer_base)?,
                     )),
                     pos: self.pos,
                 });

@@ -1,12 +1,9 @@
-use crate::lexer::{Literal, Symbol, TokenKind};
 use std::boxed::Box;
 use std::fmt;
-// use std::io::Write;
 use std::fmt::Write;
 
-pub trait Compile {
-    fn compile(&self) -> String;
-}
+use crate::compiler::{Compile, Target};
+use crate::lexer::{Literal, Symbol, TokenKind};
 
 /*
 let x = 1 + 1
@@ -48,13 +45,22 @@ pub enum Expr {
 }
 
 impl Compile for Vec<Expr> {
-    fn compile(&self) -> String {
-        self.iter().map(|s| s.compile()).collect::<Vec<String>>().join("\n")
+    fn compile(&self, t: &Target) -> String {
+        self.iter().map(|s| s.compile(t)).collect::<Vec<String>>().join("\n")
+    }
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_batch(&self) -> String {
+        unimplemented!()
     }
 }
 
 impl Compile for Expr {
-    fn compile(&self) -> String {
+    fn compile(&self, t: &Target) -> String {
         use Expr::*;
         match self {
             Int(_) => unimplemented!(),
@@ -68,15 +74,23 @@ impl Compile for Expr {
             ConstDecl(_) => unimplemented!(),
             If(_) => unimplemented!(),
             FuncDef(_) => unimplemented!(),
-            FuncCall(c) => c.compile(),
+            FuncCall(c) => c.compile(t),
             While(_) => unimplemented!(),
             Loop(_) => unimplemented!(),
-            For(f) => f.compile(),
+            For(f) => f.compile(t),
             Continue => unimplemented!(),
             Break => unimplemented!(),
-            Block(b) => b.compile(),
+            Block(b) => b.compile(t),
         }
-        // FOR %%item IN (set) DO command
+    }
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_batch(&self) -> String {
+        unimplemented!()
     }
 }
 
@@ -109,9 +123,18 @@ pub struct FuncCall {
 }
 
 impl Compile for FuncCall {
-    fn compile(&self) -> String {
+    fn compile(&self, t: &Target) -> String {
         format!("(1, 2, 3, 4)")
         // format!("GOTO :{}\n{}", self.func_name, self.params.join("SET /A x = "))
+    }
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_batch(&self) -> String {
+        unimplemented!()
     }
 }
 
@@ -131,8 +154,17 @@ pub struct For {
 
 /// FOR %%item IN (set) DO command
 impl Compile for For {
-    fn compile(&self) -> String {
-        format!("FOR %%{} IN {} DO {}", self.item, self.container.compile(), self.body.compile())
+    fn compile(&self, t: &Target) -> String {
+        format!("FOR %%{} IN {} DO {}", self.item, self.container.compile(t), self.body.compile(t))
+    }
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_batch(&self) -> String {
+        unimplemented!()
     }
 }
 
@@ -148,8 +180,17 @@ pub struct Loop {
 }
 
 impl Compile for Loop {
-    fn compile(&self) -> String {
-        format!(":LOOP\n{}\ngoto :LOOP", self.body.compile())
+    fn compile(&self, t: &Target) -> String {
+        format!(":LOOP\n{}\ngoto :LOOP", self.body.compile(t))
+    }
+    fn compile_asm(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_dos(&self) -> String {
+        unimplemented!()
+    }
+    fn compile_batch(&self) -> String {
+        unimplemented!()
     }
 }
 

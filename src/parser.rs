@@ -82,7 +82,7 @@ impl Parser {
     fn eat_compound_stmt(&mut self) -> PResult {
         let mut stmts: Vec<Expr> = Vec::new();
         loop {
-            match self.peek_token().unwrap().token_kind {
+            match self.peek_token()?.token_kind {
                 TokenKind::Eof => return Err(ParseError::Eof),
                 TokenKind::Symbol(Symbol::CloseBracket) => break,
                 _ => {
@@ -114,7 +114,7 @@ impl Parser {
         let mut params: Vec<String> = Vec::new();
         let name = self.eat_ident()?;
         expect_symbol!(self, OpenParen, "expected symbol '('");
-        if let TokenKind::Identifier(_) = self.peek_token().unwrap().token_kind {
+        if let TokenKind::Identifier(_) = self.peek_token()?.token_kind {
             loop {
                 params.push(self.eat_ident()?);
                 match self.eat_token().token_kind {
@@ -189,15 +189,20 @@ impl Parser {
             | TokenKind::Symbol(Symbol::LogicalNot)
             | TokenKind::Symbol(Symbol::BitwiseNot) => {
                 return self.eat_unary();
-            }
+            },
+            TokenKind::Eof => return Err(ParseError::Eof),
             _ => {}
         }
 
         macro_rules! bin_op {
             ($self:ident, $left:ident, $( $type:ident ),*) => {
-                match $self.peek_token().unwrap().token_kind {
+                match $self.peek_token()?.token_kind {
                     $(TokenKind::Symbol(Symbol::$type) => BinaryOpKind::$type,)*
-                    TokenKind::Symbol(Symbol::CloseParen) => unimplemented!(),
+                    TokenKind::Symbol(Symbol::CloseParen) => {
+                        $self.eat_token();
+                        return Ok($left)
+                    },
+                    TokenKind::Eof => return Err(ParseError::Eof),
                     _ => return Ok($left)
                 }
             }
@@ -232,7 +237,7 @@ impl Parser {
             _ => unimplemented!(),
         };
         dbg!(&op);
-        let child = match self.peek_token().unwrap().token_kind {
+        let child = match self.peek_token()?.token_kind {
             TokenKind::Symbol(Symbol::OpenParen) => self.eat_expr()?,
             _ => self.eat_var_or_literal()?,
         };
@@ -287,11 +292,11 @@ impl Parser {
         &self.tokens[self.cursor - 1]
     }
 
-    fn peek_token(&mut self) -> Option<&Token> {
+    fn peek_token(&mut self) -> Result<&Token, ParseError> {
         if &self.tokens.len() <= &(self.cursor) {
-            None
+            Err(ParseError::Eof)
         } else {
-            Some(&self.tokens[self.cursor])
+            Ok(&self.tokens[self.cursor])
         }
     }
 

@@ -69,7 +69,10 @@ impl Parser {
             let clone = ident.clone();
             match self.peek_token()?.token_kind {
                 TokenKind::Symbol(Symbol::OpenParen) => return self.eat_fn_call(clone),
-                TokenKind::Symbol(_) => return self.eat_mut_assign(clone),
+                TokenKind::Symbol(Symbol::AddAssign)
+                | TokenKind::Symbol(Symbol::SubAssign)
+                | TokenKind::Symbol(Symbol::MulAssign)
+                | TokenKind::Symbol(Symbol::DivAssign) => return self.eat_mut_assign(clone),
                 _ => return Err(ParseError::Error("unexpected token following identifier"))
             }
         }
@@ -123,7 +126,15 @@ impl Parser {
     }
 
     fn eat_mut_assign(&mut self, name: String) -> PResult {
-        unimplemented!()
+        let op = match self.eat_token().token_kind {
+            TokenKind::Symbol(Symbol::AddAssign) => BinaryOpKind::Add,
+            TokenKind::Symbol(Symbol::SubAssign) => BinaryOpKind::Sub,
+            TokenKind::Symbol(Symbol::MulAssign) => BinaryOpKind::Mul,
+            TokenKind::Symbol(Symbol::DivAssign) => BinaryOpKind::Div,
+            _ => unreachable!()
+        };
+        let right = self.eat_expr()?;
+        Ok(Expr::Binary(Box::new(BinaryExpr{ left: Expr::Variable(name), op, right })))
     }
 
     fn eat_fn_decl(&mut self) -> PResult {

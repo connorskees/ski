@@ -56,7 +56,6 @@ impl Parser {
 
     fn eat_stmt(&mut self) -> PResult {
         let tok = self.eat_token();
-        println!("{:?}", &tok);
         if let &TokenKind::Keyword(ref keyw) = &tok.token_kind {
             match *keyw {
                 Keyword::If => return self.eat_if(),
@@ -101,7 +100,10 @@ impl Parser {
     }
 
     fn eat_if(&mut self) -> PResult {
-        unimplemented!()
+        let cond = self.eat_expr()?;
+        let then = self.eat_stmt()?;
+        let else_ = self.eat_stmt()?;
+        Ok(Expr::If(Box::new(If { cond, then, else_ })))
     }
 
     fn eat_var_decl(&mut self) -> PResult {
@@ -135,25 +137,22 @@ impl Parser {
     fn eat_fn_call(&mut self, func_name: String) -> PResult {
         let mut params: Vec<Expr> = Vec::new();
         loop {
+            // TODO: let tok = self.eat_expr();
             let tok = eat_literal!(self);
             params.push(tok);
             match self.eat_token().token_kind {
                 TokenKind::Symbol(Symbol::Comma) => continue,
                 TokenKind::Symbol(Symbol::CloseParen) => break,
-                _ => unimplemented!(),
+                _ => return Err(ParseError::Error("expected ',' or ')'")),
             }
         }
         Ok(Expr::FuncCall(Box::new(FuncCall { func_name, params })))
     }
 
-    fn eat_fn_params(&mut self) -> Vec<String> {
-        unimplemented!()
-    }
-
     fn eat_while(&mut self) -> PResult {
-        expect_keyword!(self, While, "expected keyword 'while'");
-        let cond = unimplemented!();
-        let body = self.eat_stmt();
+        let cond = self.eat_expr()?;
+        let body = self.eat_stmt()?;
+        Ok(Expr::While(Box::new(While { cond, body })))
     }
 
     fn eat_loop(&mut self) -> PResult {

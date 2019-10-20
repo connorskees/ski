@@ -117,16 +117,17 @@ impl Parser {
         let mut params: Vec<String> = Vec::new();
         let func_name = eat_ident!(self);
         expect_symbol!(self, OpenParen, "expected symbol '('");
-        let tok = self.eat_token();
-        if tok.token_kind != TokenKind::Symbol(Symbol::CloseParen) {
+        if let TokenKind::Identifier(_) = self.peek_token().unwrap().token_kind  {
             loop {
+                params.push(eat_ident!(self));
                 match self.eat_token().token_kind {
                     TokenKind::Symbol(Symbol::Comma) => continue,
                     TokenKind::Symbol(Symbol::CloseParen) => break,
-                    _ => unimplemented!()
+                    _ => return Err(ParseError::Error("expected ',' or ')'"))
                 };
-                params.push(eat_ident!(self));
             }
+        } else {
+            expect_symbol!(self, CloseParen, "expected symbol ')'");
         }
         let body = self.eat_stmt()?;
         Ok(Expr::FuncDef(

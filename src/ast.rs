@@ -28,6 +28,7 @@ pub enum Expr {
     Literal(Literal),
     Return(Box<Expr>),
     VariableDecl(Box<VariableDecl>),
+    ConstDecl(Box<ConstDecl>),
     If(Box<If>),
     FuncDef(Box<FuncDef>),
     FuncCall(Box<FuncCall>),
@@ -92,6 +93,12 @@ pub struct Loop {
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct VariableDecl {
+    pub name: String,
+    pub value: Expr,
+}
+
+#[derive(Debug, Hash, Eq, PartialEq)]
+pub struct ConstDecl {
     pub name: String,
     pub value: Expr,
 }

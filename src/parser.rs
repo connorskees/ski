@@ -59,6 +59,7 @@ impl Parser {
                 Keyword::Break => return self.eat_break(),
                 Keyword::Return => return self.eat_return(),
                 Keyword::Let => return self.eat_var_decl(),
+                Keyword::Const => return self.eat_const_decl(),
                 Keyword::Function => return self.eat_fn_decl(),
                 _ => {}
             }
@@ -106,7 +107,25 @@ impl Parser {
         Ok(Expr::If(Box::new(If { cond, then, else_ })))
     }
 
+    fn eat_assign(&mut self, is_const: bool) -> Result<(String, Expr), ParseError> {
+        let name = self.eat_ident()?;
+        expect_symbol!(self, Assign, "expected '='");
+        let value = self.eat_expr()?;
+        expect_symbol!(self, SemiColon, "expected ';'");
+        Ok((name, value))
+    }
+
     fn eat_var_decl(&mut self) -> PResult {
+        let (name, value) = self.eat_assign(false)?;
+        Ok(Expr::VariableDecl(Box::new(VariableDecl{ name, value })))
+    }
+
+    fn eat_const_decl(&mut self) -> PResult {
+        let (name, value) = self.eat_assign(true)?;
+        Ok(Expr::ConstDecl(Box::new(ConstDecl{ name, value })))
+    }
+
+    fn eat_mut_assign(&mut self, name: String) -> PResult {
         unimplemented!()
     }
 

@@ -195,29 +195,22 @@ impl Parser {
             },
             _ => {}
         }
-        let left = self.eat_var_or_literal()?;
-        let op = match self.peek_token().unwrap().token_kind {
-            TokenKind::Symbol(Symbol::Add) => BinaryOpKind::Add,
-            TokenKind::Symbol(Symbol::Sub) => BinaryOpKind::Sub,
-            TokenKind::Symbol(Symbol::Mul) => BinaryOpKind::Mul,
-            TokenKind::Symbol(Symbol::Div) => BinaryOpKind::Div,
-            TokenKind::Symbol(Symbol::Assign) => BinaryOpKind::Assign,
-            TokenKind::Symbol(Symbol::Eq) => BinaryOpKind::Eq,
-            TokenKind::Symbol(Symbol::Ne) => BinaryOpKind::Ne,
-            TokenKind::Symbol(Symbol::Gt) => BinaryOpKind::Gt,
-            TokenKind::Symbol(Symbol::Lt) => BinaryOpKind::Lt,
-            TokenKind::Symbol(Symbol::GtEq) => BinaryOpKind::GtEq,
-            TokenKind::Symbol(Symbol::LtEq) => BinaryOpKind::LtEq,
-            TokenKind::Symbol(Symbol::Shr) => BinaryOpKind::Shr,
-            TokenKind::Symbol(Symbol::Shl) => BinaryOpKind::Shl,
-            TokenKind::Symbol(Symbol::Xor) => BinaryOpKind::Xor,
-            TokenKind::Symbol(Symbol::LogicalAnd) => BinaryOpKind::LogicalAnd,
-            TokenKind::Symbol(Symbol::LogicalOr) => BinaryOpKind::LogicalOr,
-            TokenKind::Symbol(Symbol::BinaryAnd) => BinaryOpKind::BinaryAnd,
-            TokenKind::Symbol(Symbol::BinaryOr) => BinaryOpKind::BinaryOr,
-            TokenKind::Symbol(Symbol::CloseParen) => BinaryOpKind::BinaryOr,
-            _ => return Ok(left)
+
+        macro_rules! bin_op {
+            ($self:ident, $left:ident, $( $type:ident ),*) => {
+                match $self.peek_token().unwrap().token_kind {
+                    $(TokenKind::Symbol(Symbol::$type) => BinaryOpKind::$type,)*
+                    TokenKind::Symbol(Symbol::CloseParen) => unimplemented!(),
+                    _ => return Ok($left)
+                }
+            }
         };
+
+        let left = self.eat_var_or_literal()?;
+        let op = bin_op!(
+            self, left, Add, Sub, Mul, Div, Assign, Eq, Ne, Gt, Lt, GtEq, LtEq, Shr, Shl, Xor,
+            LogicalAnd, LogicalOr, BinaryAnd, BinaryOr
+        );
         self.eat_token();
         let right = self.eat_expr()?;
         expect_optional_symbol!(self, CloseParen);

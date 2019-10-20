@@ -127,11 +127,7 @@ impl Parser {
             expect_symbol!(self, CloseParen, "expected symbol ')'");
         }
         let body = self.eat_stmt()?;
-        Ok(Expr::FuncDef(Box::new(FuncDef {
-            name,
-            params,
-            body,
-        })))
+        Ok(Expr::FuncDef(Box::new(FuncDef { name, params, body })))
     }
 
     fn eat_fn_call(&mut self, func_name: String) -> PResult {
@@ -189,10 +185,9 @@ impl Parser {
     fn eat_expr(&mut self) -> PResult {
         expect_optional_symbol!(self, OpenParen);
         match self.peek_token().unwrap().token_kind {
-            TokenKind::Symbol(Symbol::Sub)
-            | TokenKind::Symbol(Symbol::Negate) => {
+            TokenKind::Symbol(Symbol::Sub) | TokenKind::Symbol(Symbol::Negate) => {
                 return self.eat_unary();
-            },
+            }
             _ => {}
         }
 
@@ -221,7 +216,7 @@ impl Parser {
         let left = self.eat_literal()?;
         let op = match self.eat_token().token_kind {
             TokenKind::Symbol(Symbol::Add) => BinaryOpKind::Add,
-            _ => unimplemented!()
+            _ => unimplemented!(),
         };
         let right = self.eat_literal()?;
         Ok(Expr::Binary(Box::new(BinaryExpr { left, op, right })))
@@ -231,7 +226,7 @@ impl Parser {
         let op = match self.eat_token().token_kind {
             TokenKind::Symbol(Symbol::Sub) => UnaryOpKind::Minus,
             TokenKind::Symbol(Symbol::Negate) => UnaryOpKind::Negate,
-            _ => unimplemented!()
+            _ => unimplemented!(),
         };
         dbg!(&op);
         let child = match self.peek_token().unwrap().token_kind {
@@ -256,7 +251,6 @@ impl Parser {
             _ => Err(ParseError::Error("expected identifier")),
         }
     }
-
 
     fn eat_var_or_literal(&mut self) -> PResult {
         match self.eat_token().token_kind {

@@ -253,16 +253,6 @@ impl Parser {
         Ok(Expr::Binary(Box::new(BinaryExpr { left, op, right })))
     }
 
-    fn eat_binary(&mut self) -> PResult {
-        let left = self.eat_literal()?;
-        let op = match self.eat_token().token_kind {
-            TokenKind::Symbol(Symbol::Add) => BinaryOpKind::Add,
-            _ => unimplemented!(),
-        };
-        let right = self.eat_literal()?;
-        Ok(Expr::Binary(Box::new(BinaryExpr { left, op, right })))
-    }
-
     fn eat_unary(&mut self) -> PResult {
         let op = match self.eat_token().token_kind {
             TokenKind::Symbol(Symbol::Sub) => UnaryOpKind::Minus,

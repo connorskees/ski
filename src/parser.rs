@@ -246,8 +246,27 @@ impl Parser {
 
         let left = self.eat_var_or_literal()?;
         let op = bin_op!(
-            self, left, has_open_paren, Add, Sub, Mul, Div, Assign, Eq, Ne, Gt, Lt, GtEq, LtEq, Shr, Shl, Xor,
-            LogicalAnd, LogicalOr, BinaryAnd, BinaryOr
+            self,
+            left,
+            has_open_paren,
+            Add,
+            Sub,
+            Mul,
+            Div,
+            Assign,
+            Eq,
+            Ne,
+            Gt,
+            Lt,
+            GtEq,
+            LtEq,
+            Shr,
+            Shl,
+            Xor,
+            LogicalAnd,
+            LogicalOr,
+            BinaryAnd,
+            BinaryOr
         );
         self.eat_token();
         let right = self.eat_expr()?;
@@ -264,12 +283,12 @@ impl Parser {
             TokenKind::Symbol(Symbol::BitwiseNot) => UnaryOpKind::BitwiseNot,
             _ => unreachable!(),
         };
-        dbg!(&op);
+
         let child = match self.peek_token()?.token_kind {
             TokenKind::Symbol(Symbol::OpenParen) => self.eat_expr()?,
             _ => self.eat_var_or_literal()?,
         };
-        dbg!(&child);
+
         macro_rules! is_op_next {
             ($self:ident, $( $type:ident ),*) => {
                 match $self.peek_token()?.token_kind {
@@ -294,8 +313,8 @@ impl Parser {
         };
 
         is_op_next!(
-            self, Add, Sub, Mul, Div, Assign, Eq, Ne, Gt, Lt, GtEq,
-            LtEq, Shr, Shl, Xor, LogicalAnd, LogicalOr, BinaryAnd, BinaryOr
+            self, Add, Sub, Mul, Div, Assign, Eq, Ne, Gt, Lt, GtEq, LtEq, Shr, Shl, Xor,
+            LogicalAnd, LogicalOr, BinaryAnd, BinaryOr
         );
         Ok(Expr::Unary(Box::new(UnaryExpr { op, child })))
     }

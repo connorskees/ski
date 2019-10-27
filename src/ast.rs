@@ -63,15 +63,9 @@ impl Compile for Expr {
     fn compile(&self, t: &Target) -> String {
         use Expr::*;
         match self {
-            Int(i) => {
-                let s: String = i.to_string();
-                return s;
-            },
-            Str(s) => {
-                let r: String = s.to_string();
-                return r;
-            },
-            Variable(v) => v.to_string(),
+            Int(i) => i.to_string(),
+            Str(s) => s.to_owned(),
+            Variable(v) => format!("%{}%", v),
             Unary(u) => u.compile(t),
             Binary(b) => b.compile(t),
             Literal(l) => l.compile(t),
@@ -118,14 +112,14 @@ impl Compile for Literal {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
 }
 impl Compile for UnaryExpr {
     fn compile(&self, t: &Target) -> String {
-        return format!("{}{}", self.op.compile(t), self.child.compile(t));
+        format!("{}{}", self.op.compile(t), self.child.compile(t))
     }
 
     fn compile_asm(&self) -> String {
@@ -135,7 +129,7 @@ impl Compile for UnaryExpr {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -150,7 +144,7 @@ pub struct BinaryExpr {
 
 impl Compile for BinaryExpr {
     fn compile(&self, t: &Target) -> String {
-        format!("\"%{}%\" {} \"%{}%\"", self.left.compile(t), self.op.compile(t), self.right.compile(t))
+        format!("{} {} {}", self.left.compile(t), self.op.compile(t), self.right.compile(t))
     }
 
     fn compile_asm(&self) -> String {
@@ -160,7 +154,7 @@ impl Compile for BinaryExpr {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -185,7 +179,7 @@ impl Compile for FuncDef {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -222,8 +216,8 @@ pub struct If {
 
 impl Compile for If {
     fn compile(&self, t: &Target) -> String {
-        return format!("If {} ( \n {} ) \n ELSE ( {} \n ) \n", 
-        self.cond.compile(t), self.then.compile(t), self.else_.compile(t));
+        format!("IF {} (\n{})\nELSE (\n{}\n)\n",
+        self.cond.compile(t), self.then.compile(t), self.else_.compile(t))
     }
     fn compile_asm(&self) -> String {
         unimplemented!()
@@ -232,7 +226,7 @@ impl Compile for If {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -259,7 +253,7 @@ impl Compile for For {
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -280,15 +274,15 @@ impl Compile for Loop {
     fn compile(&self, t: &Target) -> String {
         format!(":LOOP\n{}\ngoto :LOOP", self.body.compile(t))
     }
-    
+
     fn compile_asm(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -298,21 +292,22 @@ impl Compile for Loop {
 pub struct VariableDecl {
     pub name: String,
     pub value: Expr,
+    //TODO: pub is_numeric: bool
 }
 
 impl Compile for VariableDecl {
     fn compile(&self, t: &Target) -> String {
         format!("set {}={}\n", self.name, self.value.compile(t))
     }
-    
+
     fn compile_asm(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -328,15 +323,15 @@ impl Compile for ConstDecl {
     fn compile(&self, t: &Target) -> String {
         unimplemented!()
     }
-    
+
     fn compile_asm(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -352,21 +347,20 @@ pub enum UnaryOpKind {
 impl Compile for UnaryOpKind {
     fn compile(&self, t: &Target) -> String {
         match self {
-            UnaryOpKind::Minus => return String::from("-"),
-            UnaryOpKind::LogicalNot => return String::from("NOT"),
-            UnaryOpKind::BitwiseNot => return String::from("~"),
-            _ => return String::from("unexpectd symbol type"),
-        };
+            UnaryOpKind::Minus => String::from("-"),
+            UnaryOpKind::LogicalNot => String::from("NOT"),
+            UnaryOpKind::BitwiseNot => String::from("~"),
+        }
     }
-    
+
     fn compile_asm(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }
@@ -395,36 +389,35 @@ pub enum BinaryOpKind {
 impl Compile for BinaryOpKind {
      fn compile(&self, t: &Target) -> String {
         match self {
-            BinaryOpKind::Add => return String::from("+"),
-            BinaryOpKind::Sub => return String::from("-"),
-            BinaryOpKind::Mul => return String::from("*"),
-            BinaryOpKind::Div => return String::from("/"),
-            BinaryOpKind::Assign => return String::from("EQU"),
-            BinaryOpKind::Eq => return String::from("=="),
-            BinaryOpKind::Ne => return String::from("NEQ"),
-            BinaryOpKind::Gt => return String::from("GTR"),
-            BinaryOpKind::Lt => return String::from("LSS"),
-            BinaryOpKind::GtEq => return String::from("GEQ"),
-            BinaryOpKind::LtEq => return String::from("LEQ"),
-            BinaryOpKind::Shr => return String::from(">>"),
-            BinaryOpKind::Shl => return String::from("<<"),
-            BinaryOpKind::Xor => return String::from("^"),
-            BinaryOpKind::LogicalAnd => return String::from("&&"),
-            BinaryOpKind::LogicalOr => return String::from("||"),
-            BinaryOpKind::BinaryAnd => return String::from("&"),
-            BinaryOpKind::BinaryOr => return String::from("|"),
-            _ => return String::from("unexpected symbol type"),
-        };
+            BinaryOpKind::Add => String::from("+"),
+            BinaryOpKind::Sub => String::from("-"),
+            BinaryOpKind::Mul => String::from("*"),
+            BinaryOpKind::Div => String::from("/"),
+            BinaryOpKind::Assign => String::from("EQU"),
+            BinaryOpKind::Eq => String::from("=="),
+            BinaryOpKind::Ne => String::from("NEQ"),
+            BinaryOpKind::Gt => String::from("GTR"),
+            BinaryOpKind::Lt => String::from("LSS"),
+            BinaryOpKind::GtEq => String::from("GEQ"),
+            BinaryOpKind::LtEq => String::from("LEQ"),
+            BinaryOpKind::Shr => String::from(">>"),
+            BinaryOpKind::Shl => String::from("<<"),
+            BinaryOpKind::Xor => String::from("^"),
+            BinaryOpKind::LogicalAnd => String::from("&&"),
+            BinaryOpKind::LogicalOr => String::from("||"),
+            BinaryOpKind::BinaryAnd => String::from("&"),
+            BinaryOpKind::BinaryOr => String::from("|"),
+        }
     }
-    
+
     fn compile_asm(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_dos(&self) -> String {
         unimplemented!()
     }
-    
+
     fn compile_bash(&self) -> String {
         unimplemented!()
     }

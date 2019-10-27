@@ -29,11 +29,11 @@ fn main() -> io::Result<()> {
 
     let mut parser = Parser::new(tokens);
     let x = parser.parse().unwrap();
-
+    // println!("{:?}", x);
     let mut compiler = Compiler::new(x);
     compiler.compile("test2.cmd", Target::DOS)?;
     
-    // println!("{:?}", x);
+     
 
     Ok(())
 }

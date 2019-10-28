@@ -80,13 +80,14 @@ pub enum TokenKind {
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Pos {
-    row: u16,
-    col: u16,
+    row: u32,
+    col: u32,
+    span: u32,
 }
 
 impl Pos {
     pub fn new() -> Pos {
-        Pos { row: 0, col: 0 }
+        Pos { row: 1, col: 1, span: 0 }
     }
 }
 
@@ -242,6 +243,7 @@ impl Lexer {
                                     pos: self.pos,
                                 });
                                 current_identifier = "";
+                                self.pos.span = 0;
                                 literal = LiteralKind::None;
                                 continue;
                             }
@@ -291,6 +293,7 @@ impl Lexer {
                     'x' => {
                         if current_identifier.len() == 1 {
                             current_identifier = "";
+                            self.pos.span = 0;
                             integer_base = 16;
                         } else {
                             return Err(LexingError::InvalidIntegerLiteralCharacter);
@@ -309,6 +312,7 @@ impl Lexer {
                         });
                         integer_base = 10;
                         current_identifier = "";
+                        self.pos.span = 0;
                         literal = LiteralKind::None;
                     }
                 },
@@ -323,6 +327,7 @@ impl Lexer {
                             pos: self.pos,
                         });
                         current_identifier = "";
+                        self.pos.span = 0;
                     }
                 }
                 '\n' => {
@@ -333,6 +338,7 @@ impl Lexer {
                         });
                         current_identifier = "";
                     }
+                    self.pos.span = 0;
                     self.pos.row += 1;
                     self.pos.col = 0;
                 }
@@ -343,6 +349,7 @@ impl Lexer {
                             pos: self.pos,
                         });
                         current_identifier = "";
+                        self.pos.span = 0;
                     }
                     tokens.push(Token {
                         token_kind: TokenKind::new(&c.to_string()),
@@ -378,6 +385,7 @@ impl Lexer {
                             pos: self.pos,
                         });
                         current_identifier = "";
+                        self.pos.span = 0;
                     }
                     _ => {
                         if current_identifier != "" {
@@ -412,6 +420,7 @@ impl Lexer {
                             pos: self.pos,
                         });
                         current_identifier = "";
+                        self.pos.span = 0;
                     }
                     ci = format!("{}{}", current_identifier, c);
                     current_identifier = ci.as_ref();
@@ -424,6 +433,7 @@ impl Lexer {
                                 pos: self.pos,
                             });
                             current_identifier = "";
+                            self.pos.span = 0;
                         }
                         _ => {}
                     }
@@ -431,6 +441,7 @@ impl Lexer {
                     current_identifier = ci.as_ref();
                 }
             }
+            self.pos.span += 1;
         }
 
         match literal {

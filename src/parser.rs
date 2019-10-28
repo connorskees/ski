@@ -74,7 +74,7 @@ impl Parser {
                 | TokenKind::Symbol(Symbol::SubAssign)
                 | TokenKind::Symbol(Symbol::MulAssign)
                 | TokenKind::Symbol(Symbol::DivAssign) => return self.eat_mut_assign(clone),
-                _ => return Err(ParseError::Error("unexpected token following identifier")),
+                _ => return Err(ParseError::Error("unexpected token following identifier", line!())),
             }
         }
         dbg!(&tok);
@@ -151,7 +151,7 @@ impl Parser {
                 match self.eat_token().token_kind {
                     TokenKind::Symbol(Symbol::Comma) => continue,
                     TokenKind::Symbol(Symbol::CloseParen) => break,
-                    _ => return Err(ParseError::Error("expected ',' or ')'")),
+                    _ => return Err(ParseError::Error("expected ',' or ')'", line!()))
                 };
             }
         } else {
@@ -170,7 +170,7 @@ impl Parser {
             match self.eat_token().token_kind {
                 TokenKind::Symbol(Symbol::Comma) => continue,
                 TokenKind::Symbol(Symbol::CloseParen) => break,
-                _ => return Err(ParseError::Error("expected ',' or ')'")),
+                _ => return Err(ParseError::Error("expected ',' or ')'", line!())),
             }
         }
         expect_optional_symbol!(self, SemiColon);
@@ -323,14 +323,14 @@ impl Parser {
         match self.eat_token().token_kind {
             TokenKind::Literal(Literal::Str(ref s)) => Ok(Expr::Str(s.to_string())),
             TokenKind::Literal(Literal::Int(i)) => Ok(Expr::Int(i)),
-            _ => Err(ParseError::Error("expected literal")),
+            _ => Err(ParseError::Error("expected literal", line!())),
         }
     }
 
     fn eat_ident(&mut self) -> Result<String, ParseError> {
         match self.eat_token().token_kind {
             TokenKind::Identifier(ref ident) => Ok(ident.to_string()),
-            _ => Err(ParseError::Error("expected identifier")),
+            _ => Err(ParseError::Error("expected identifier", line!())),
         }
     }
 
@@ -339,7 +339,7 @@ impl Parser {
             TokenKind::Identifier(ref ident) => Ok(Expr::Variable(ident.to_string())),
             TokenKind::Literal(Literal::Str(ref s)) => Ok(Expr::Str(s.to_string())),
             TokenKind::Literal(Literal::Int(i)) => Ok(Expr::Int(i)),
-            _ => Err(ParseError::Error("expected identifier or literal")),
+            _ => Err(ParseError::Error("expected identifier or literal", line!())),
         }
     }
 

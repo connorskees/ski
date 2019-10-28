@@ -286,7 +286,7 @@ impl Lexer {
                             ci = format!("{}{}", current_identifier, c);
                             current_identifier = ci.as_ref();
                         } else {
-                            return Err(LexingError::InvalidIntegerLiteralCharacter);
+                            return Err(LexingError::InvalidIntegerLiteralCharacter(line!()));
                         }
                         continue;
                     }
@@ -296,12 +296,12 @@ impl Lexer {
                             self.pos.span = 0;
                             integer_base = 16;
                         } else {
-                            return Err(LexingError::InvalidIntegerLiteralCharacter);
+                            return Err(LexingError::InvalidIntegerLiteralCharacter(line!()));
                         }
                         continue;
                     }
                     'g'..='z' | 'G'..='Z' => {
-                        return Err(LexingError::InvalidIntegerLiteralCharacter);
+                        return Err(LexingError::InvalidIntegerLiteralCharacter(line!()));
                     }
                     _ => {
                         tokens.push(Token {

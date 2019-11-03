@@ -4,9 +4,9 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, stdin};
 
+use compiler::{Compiler, Target};
 use lexer::Lexer;
 use parser::Parser;
-use compiler::{Compiler, Target};
 
 mod ast;
 mod compiler;
@@ -32,8 +32,6 @@ fn main() -> io::Result<()> {
     // println!("{:?}", x);
     let mut compiler = Compiler::new(x);
     compiler.compile("test2.cmd", Target::DOS)?;
-    
-     
 
     Ok(())
 }

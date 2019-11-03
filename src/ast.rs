@@ -46,7 +46,10 @@ pub enum Expr {
 
 impl Compile for Vec<Expr> {
     fn compile(&self, t: &Target) -> String {
-        self.iter().map(|s| s.compile(t)).collect::<Vec<String>>().join("\n")
+        self.iter()
+            .map(|s| s.compile(t))
+            .collect::<Vec<String>>()
+            .join("\n")
     }
     fn compile_asm(&self) -> String {
         unimplemented!()
@@ -144,7 +147,12 @@ pub struct BinaryExpr {
 
 impl Compile for BinaryExpr {
     fn compile(&self, t: &Target) -> String {
-        format!("{} {} {}", self.left.compile(t), self.op.compile(t), self.right.compile(t))
+        format!(
+            "{} {} {}",
+            self.left.compile(t),
+            self.op.compile(t),
+            self.right.compile(t)
+        )
     }
 
     fn compile_asm(&self) -> String {
@@ -216,8 +224,12 @@ pub struct If {
 
 impl Compile for If {
     fn compile(&self, t: &Target) -> String {
-        format!("IF {} (\n{})\nELSE (\n{}\n)\n",
-        self.cond.compile(t), self.then.compile(t), self.else_.compile(t))
+        format!(
+            "IF {} (\n{})\nELSE (\n{}\n)\n",
+            self.cond.compile(t),
+            self.then.compile(t),
+            self.else_.compile(t)
+        )
     }
     fn compile_asm(&self) -> String {
         unimplemented!()
@@ -232,7 +244,6 @@ impl Compile for If {
     }
 }
 
-
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct For {
     pub item: String,
@@ -243,7 +254,12 @@ pub struct For {
 /// FOR %%item IN (set) DO command
 impl Compile for For {
     fn compile(&self, t: &Target) -> String {
-        format!("FOR %%{} IN {} DO (\n{})\n", self.item, self.container.compile(t), self.body.compile(t))
+        format!(
+            "FOR %%{} IN {} DO (\n{})\n",
+            self.item,
+            self.container.compile(t),
+            self.body.compile(t)
+        )
     }
 
     fn compile_asm(&self) -> String {
@@ -387,7 +403,7 @@ pub enum BinaryOpKind {
     BinaryOr,
 }
 impl Compile for BinaryOpKind {
-     fn compile(&self, t: &Target) -> String {
+    fn compile(&self, t: &Target) -> String {
         match self {
             BinaryOpKind::Add => String::from("+"),
             BinaryOpKind::Sub => String::from("-"),

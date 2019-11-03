@@ -87,7 +87,11 @@ pub struct Pos {
 
 impl Pos {
     pub fn new() -> Pos {
-        Pos { row: 1, col: 1, span: 0 }
+        Pos {
+            row: 1,
+            col: 1,
+            span: 0,
+        }
     }
 }
 
@@ -305,9 +309,10 @@ impl Lexer {
                     }
                     _ => {
                         tokens.push(Token {
-                            token_kind: TokenKind::Literal(Literal::Int(
-                                u64::from_str_radix(current_identifier, integer_base)?,
-                            )),
+                            token_kind: TokenKind::Literal(Literal::Int(u64::from_str_radix(
+                                current_identifier,
+                                integer_base,
+                            )?)),
                             pos: self.pos,
                         });
                         integer_base = 10;
@@ -447,9 +452,10 @@ impl Lexer {
         match literal {
             LiteralKind::Int => {
                 tokens.push(Token {
-                    token_kind: TokenKind::Literal(Literal::Int(
-                        u64::from_str_radix(current_identifier, integer_base)?,
-                    )),
+                    token_kind: TokenKind::Literal(Literal::Int(u64::from_str_radix(
+                        current_identifier,
+                        integer_base,
+                    )?)),
                     pos: self.pos,
                 });
             }

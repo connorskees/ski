@@ -74,7 +74,12 @@ impl Parser {
                 | TokenKind::Symbol(Symbol::SubAssign)
                 | TokenKind::Symbol(Symbol::MulAssign)
                 | TokenKind::Symbol(Symbol::DivAssign) => return self.eat_mut_assign(clone),
-                _ => return Err(ParseError::Error("unexpected token following identifier", line!())),
+                _ => {
+                    return Err(ParseError::Error(
+                        "unexpected token following identifier",
+                        line!(),
+                    ))
+                }
             }
         }
         dbg!(&tok);
@@ -151,7 +156,7 @@ impl Parser {
                 match self.eat_token().token_kind {
                     TokenKind::Symbol(Symbol::Comma) => continue,
                     TokenKind::Symbol(Symbol::CloseParen) => break,
-                    _ => return Err(ParseError::Error("expected ',' or ')'", line!()))
+                    _ => return Err(ParseError::Error("expected ',' or ')'", line!())),
                 };
             }
         } else {

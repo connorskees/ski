@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, stdin};
 
-use compiler::{Compiler, Target};
+use compiler::{Compiler};
 use lexer::Lexer;
 use parser::Parser;
 
@@ -30,8 +30,6 @@ fn main() -> io::Result<()> {
     let mut parser = Parser::new(tokens);
     let x = parser.parse().unwrap();
     // println!("{:?}", x);
-    let mut compiler = Compiler::new(x);
-    compiler.compile("test2.cmd", Target::DOS)?;
 
     Ok(())
 }

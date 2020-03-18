@@ -98,7 +98,7 @@ pub struct Loop {
 pub struct VariableDecl {
     pub name: String,
     pub value: Expr,
-    //TODO: pub is_numeric: bool
+    pub is_numeric: bool
 }
 
 #[derive(Debug, Hash, Eq, PartialEq)]

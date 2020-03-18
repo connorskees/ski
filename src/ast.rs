@@ -42,7 +42,6 @@ pub enum Expr {
     Block(Vec<Expr>),
 }
 
-
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct UnaryExpr {
     pub op: UnaryOpKind,
@@ -94,7 +93,6 @@ pub struct While {
 pub struct Loop {
     pub body: Expr,
 }
-
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct VariableDecl {

@@ -7,7 +7,6 @@ use crate::ast::Expr;
 
 #[allow(non_camel_case_types)]
 
-
 pub struct Compiler {
     ast: Expr,
 }

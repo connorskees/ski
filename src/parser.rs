@@ -91,7 +91,10 @@ impl Parser {
         loop {
             match self.peek_token()?.token_kind {
                 TokenKind::Eof => return Err(ParseError::Eof),
-                TokenKind::Symbol(Symbol::CloseBracket) => break,
+                TokenKind::Symbol(Symbol::CloseBracket) => {
+                    self.eat_token();
+                    break;
+                }
                 _ => {
                     stmts.push(self.eat_stmt()?);
                 }

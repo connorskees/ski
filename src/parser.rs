@@ -114,22 +114,23 @@ impl Parser {
         Ok(Expr::If(Box::new(If { cond, then, else_ })))
     }
 
-    fn eat_assign(&mut self) -> Result<(String, Expr), ParseError> {
+    fn eat_assign(&mut self) -> Result<(String, Expr, bool), ParseError> {
         let name = self.eat_ident()?;
+        let is_numeric = expect_optional_symbol!(self, Colon);
         expect_symbol!(self, Assign, "expected '='");
         let value = self.eat_expr()?;
         expect_symbol!(self, SemiColon, "expected ';'");
-        Ok((name, value))
+        Ok((name, value, is_numeric))
     }
 
     fn eat_var_decl(&mut self) -> PResult {
-        let (name, value) = self.eat_assign()?;
-        Ok(Expr::VariableDecl(Box::new(VariableDecl { name, value })))
+        let (name, value, is_numeric) = self.eat_assign()?;
+        Ok(Expr::VariableDecl(Box::new(VariableDecl { name, value, is_numeric})))
     }
 
     fn eat_const_decl(&mut self) -> PResult {
-        let (name, value) = self.eat_assign()?;
-        Ok(Expr::ConstDecl(Box::new(ConstDecl { name, value })))
+        let (name, value, is_numeric) = self.eat_assign()?;
+        Ok(Expr::VariableDecl(Box::new(VariableDecl { name, value, is_numeric})))
     }
 
     fn eat_mut_assign(&mut self, name: String) -> PResult {

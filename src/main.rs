@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
     let x = parser.parse().unwrap();
     println!("{:#?}", x);
 
-    let mut comp = Compiler::new(File::create("foo.txt")?);
+    let mut comp = Compiler::new(File::create("foo.cmd")?);
     comp.compile(x)?;
     Ok(())
 }

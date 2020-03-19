@@ -129,12 +129,20 @@ impl Parser {
 
     fn eat_var_decl(&mut self) -> PResult {
         let (name, value, is_numeric) = self.eat_assign()?;
-        Ok(Expr::VariableDecl(Box::new(VariableDecl { name, value, is_numeric})))
+        Ok(Expr::VariableDecl(Box::new(VariableDecl {
+            name,
+            value,
+            is_numeric,
+        })))
     }
 
     fn eat_const_decl(&mut self) -> PResult {
         let (name, value, is_numeric) = self.eat_assign()?;
-        Ok(Expr::VariableDecl(Box::new(VariableDecl { name, value, is_numeric})))
+        Ok(Expr::VariableDecl(Box::new(VariableDecl {
+            name,
+            value,
+            is_numeric,
+        })))
     }
 
     fn eat_mut_assign(&mut self, name: String) -> PResult {

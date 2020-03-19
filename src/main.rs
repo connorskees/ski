@@ -32,6 +32,6 @@ fn main() -> io::Result<()> {
     println!("{:#?}", x);
 
     let mut comp = Compiler::new(File::create("foo.txt")?);
-    comp.compile(x);
+    comp.compile(x)?;
     Ok(())
 }

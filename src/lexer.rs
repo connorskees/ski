@@ -128,7 +128,7 @@ impl TokenKind {
             "!" => TokenKind::Symbol(Symbol::LogicalNot),
             "~" => TokenKind::Symbol(Symbol::BitwiseNot),
             ";" => TokenKind::Symbol(Symbol::SemiColon),
-            ":" => TokenKind::Symbol(Symbol::SemiColon),
+            ":" => TokenKind::Symbol(Symbol::Colon),
             "," => TokenKind::Symbol(Symbol::Comma),
             "'" => TokenKind::Symbol(Symbol::SingleQuote),
             "\"" => TokenKind::Symbol(Symbol::DoubleQuote),
@@ -338,6 +338,18 @@ impl Lexer {
                         current_identifier = "";
                         self.pos.span = 0;
                     }
+                }
+                ':' => {
+                    tokens.push(Token {
+                        token_kind: TokenKind::new(current_identifier),
+                        pos: self.pos,
+                    });
+                    self.pos.col += 1;
+                    tokens.push(Token {
+                        token_kind: TokenKind::Symbol(Symbol::Colon),
+                        pos: self.pos,
+                    });
+                    current_identifier = "";
                 }
                 '\n' => {
                     if current_identifier != "" {

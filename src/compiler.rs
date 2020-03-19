@@ -15,7 +15,7 @@ impl<W: Write> Compiler<W> {
         Compiler { scope: 0, buf }
     }
 
-    pub fn compile<T: AsRef<Path>>(&mut self, ast: Expr) -> io::Result<()> {
+    pub fn compile(&mut self, ast: Expr) -> io::Result<()> {
         // fs::remove_file(&path)?;
         // let mut stream = BufWriter::new(fs::File::create(path)?);
         self.buf.write(b"@echo off\n")?;
@@ -24,7 +24,7 @@ impl<W: Write> Compiler<W> {
 
         match ast {
             Expr::If(i) => self.compile_if(i)?,
-            _ => todo!(),
+            _ => unimplemented!(),
         };
 
         self.buf.write(b"@echo on")?;
@@ -32,7 +32,94 @@ impl<W: Write> Compiler<W> {
     }
 
     pub fn compile_if(&mut self, i: Box<If>) -> io::Result<()> {
-        // self.buf.write(b"IF {}")
+        self.buf.write(b"IF ")?;
+        self.compile_expr(i.cond);
+        self.buf.write(b"( \n")?;
+        self.compile_expr(i.then);
+        self.buf.write(b") \n")?;
+        self.buf.write(b"ELSE (")?;
+        self.compile_expr(i.else_);
+        self.buf.write(b")")?;
+        Ok(())
+    }
+
+    pub fn compile_expr(&mut self, ast: Expr) -> io::Result<()> {
+        match ast {
+            Expr::Binary(i) => self.compile_binary_expr(i)?,
+            Expr::Variable(i) => self.compile_var(i)?,
+            Expr::Int(i) => self.compile_int(i)?,
+            Expr::VariableDecl(i) => self.compile_var_decl(i)?,
+            Expr::Block(i) => self.compile_block(i)?,
+            _ => unimplemented!()
+        }
+        Ok(())
+    }
+    pub fn compile_binary_expr(&mut self, ast: Box<BinaryExpr>) -> io::Result<()> {
+        self.compile_expr(ast.left);
+        self.compile_binary_op_kind(ast.op);
+        self.compile_expr(ast.right);
+        Ok(())
+    }
+
+    pub fn compile_var(&mut self, ast: String) -> io::Result<()> {
+        write!(self.buf, "%{}%", ast)?;
+        Ok(())
+    }
+
+    pub fn compile_var_decl(&mut self, ast: Box<VariableDecl>) -> io::Result<()> {
+        self.buf.write(b"SET ")?;
+        if (ast.is_numeric) {
+            self.buf.write(b"/A ")?;
+        }
+        self.buf.write(b"%")?;
+        self.compile_str(ast.name);
+        self.buf.write(b"%")?;
+        self.buf.write(b"=")?;
+        self.compile_expr(ast.value);
+        Ok(())
+    }
+
+    pub fn compile_block(&mut self, ast: Vec<Expr>) -> io::Result<()> {
+        for x in ast {
+            self.compile_expr(x);
+        }
+        Ok(())
+    }
+
+    pub fn compile_int(&mut self, ast: u64) -> io::Result<()> {
+        write!(self.buf, "{}", ast)?;
+        Ok(())
+    }
+
+    pub fn compile_str(&mut self, ast: String) -> io::Result<()> {
+        write!(self.buf, "{}", ast)?;
+        Ok(())
+    }
+
+    pub fn compile_binary_op_kind(&mut self, ast: BinaryOpKind) -> io::Result<()> {
+        let mut x = "";
+        match ast {
+            BinaryOpKind::Add => x = "+",
+            BinaryOpKind::Sub => x = "-",
+            BinaryOpKind::Mul => x = "*",
+            BinaryOpKind::Div => x = "/",
+           BinaryOpKind::Assign => x = "=",
+           BinaryOpKind::Eq => x = "==",
+           BinaryOpKind::Ne => x = "!=",
+           BinaryOpKind::Gt => x = ">",
+           BinaryOpKind::Lt => x = "<",
+           BinaryOpKind::GtEq => x = ">=",
+           BinaryOpKind::LtEq => x = "<=",
+           BinaryOpKind::Shr => x = ">>",
+           BinaryOpKind::Shl => x = "<<",
+           BinaryOpKind::Xor => x = "!",
+           BinaryOpKind::LogicalAnd => x = "&&",
+           BinaryOpKind::LogicalOr => x = "||",
+           BinaryOpKind::BinaryAnd => x = "&",
+           BinaryOpKind::BinaryOr => x = "|",
+           _ => x = "Incorrect symbol"
+        }
+        write!(self.buf, "{}", x)?;
         Ok(())
     }
 }

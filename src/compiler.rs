@@ -2,18 +2,21 @@ use std::fs;
 use std::io::prelude::*;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::ast::*;
-
+static SCOPE: AtomicUsize = AtomicUsize::new(0);
 pub struct Compiler<W: Write> {
-    scope: usize,
     buf: W,
-    for_count: usize
+    stack: Vec<usize>,
 }
 
 impl<W: Write> Compiler<W> {
     pub fn new(buf: W) -> Compiler<W> {
-        Compiler { scope: 0, buf, for_count: 0 }
+        Compiler {
+            buf,
+            stack: Vec::new(),
+        }
     }
 
     pub fn compile(&mut self, ast: Expr) -> io::Result<()> {
@@ -27,14 +30,14 @@ impl<W: Write> Compiler<W> {
 
         self.compile_expr(ast)?;
 
-        self.buf.write(b"@echo on")?;
         Ok(())
     }
 
-    pub fn compile_func_call(&mut self, ast: Box<FuncCall>) -> io::Result<()> { 
+    pub fn compile_func_call(&mut self, ast: Box<FuncCall>) -> io::Result<()> {
         match ast.func_name.as_str() {
             "range" => self.compile_range(ast.params)?,
-            _ => unreachable!()
+            "print" => self.compile_echo(ast.params)?,
+            _ => unreachable!(),
         }
         Ok(())
     }
@@ -42,12 +45,16 @@ impl<W: Write> Compiler<W> {
     pub fn compile_if(&mut self, i: Box<If>) -> io::Result<()> {
         self.buf.write(b"IF ")?;
         self.compile_expr(i.cond)?;
-        self.buf.write(b"( \n")?;
+        self.buf.write(b" (\n")?;
         self.compile_expr(i.then)?;
-        self.buf.write(b") \n")?;
-        self.buf.write(b"ELSE (")?;
-        self.compile_expr(i.else_)?;
         self.buf.write(b")")?;
+        if i.else_ != Expr::Block(Vec::new()) {
+            self.buf.write(b"ELSE (")?;
+            self.compile_expr(i.else_)?;
+            self.buf.write(b"\n) ")?;
+        } else {
+            self.buf.write(b"\n")?;
+        }
         Ok(())
     }
 
@@ -62,21 +69,40 @@ impl<W: Write> Compiler<W> {
         self.buf.write(b")")?;
         Ok(())
     }
+
+    pub fn compile_echo(&mut self, ast: Vec<Expr>) -> io::Result<()> {
+        self.buf.write(b"ECHO ")?;
+        self.compile_block(ast)?;
+        self.buf.write(b"\n")?;
+        Ok(())
+    }
+
     pub fn compile_expr(&mut self, ast: Expr) -> io::Result<()> {
         match ast {
             Expr::Binary(i) => self.compile_binary_expr(i)?,
             Expr::Variable(i) => write!(self.buf, "%{}%", i)?,
+            Expr::ForVariable(i) => write!(self.buf, "%%{}", i)?,
             Expr::Int(i) => write!(self.buf, "{}", i)?,
             Expr::VariableDecl(i) => self.compile_var_decl(i)?,
             Expr::Block(i) => self.compile_block(i)?,
             Expr::For(i) => self.compile_for(i)?,
-            Expr::Str(i) =>  write!(self.buf, "{}", i)?,
+            Expr::Str(i) => write!(self.buf, "{}", i)?,
             Expr::FuncDef(i) => self.compile_func_def(i)?,
             Expr::FuncCall(i) => self.compile_func_call(i)?,
             Expr::Return(i) => self.compile_return(i)?,
             Expr::Break => self.compile_break()?,
-            _ => println!("{:?}", ast),
+            Expr::While(i) => self.compile_while(i)?,
+            Expr::Loop(i) => self.compile_loop(i)?,
+            Expr::Unary(i) => self.compile_unary_expr(i)?,
+            Expr::Continue => self.compile_continue()?,
+            Expr::ConstDecl(i) => self.compile_const_decl(i)?,
+            Expr::If(i) => self.compile_if(i)?,
         }
+        Ok(())
+    }
+    pub fn compile_unary_expr(&mut self, ast: Box<UnaryExpr>) -> io::Result<()> {
+        self.compile_unary_op_kind(ast.op)?;
+        self.compile_expr(ast.child)?;
         Ok(())
     }
     pub fn compile_binary_expr(&mut self, ast: Box<BinaryExpr>) -> io::Result<()> {
@@ -86,13 +112,17 @@ impl<W: Write> Compiler<W> {
         Ok(())
     }
 
-    pub fn compile_for(&mut self, ast: Box<For>) -> io::Result<()> { 
+    pub fn compile_for(&mut self, ast: Box<For>) -> io::Result<()> {
+        self.stack.push(SCOPE.fetch_add(1, Ordering::Relaxed));
         self.buf.write(b"FOR /l %%")?;
         self.buf.write(ast.item.as_bytes())?;
         self.buf.write(b" IN ")?;
         self.compile_expr(ast.container)?;
-        self.buf.write(b" DO ")?;
+        self.buf.write(b" DO (\n")?;
         self.compile_expr(ast.body)?;
+        self.buf.write(b")\n")?;
+        let popped = self.stack.pop().unwrap();
+        writeln!(self.buf, ":END{}", popped)?;
         Ok(())
     }
 
@@ -110,7 +140,7 @@ impl<W: Write> Compiler<W> {
         Ok(())
     }
 
-    pub fn compile_params(&mut self, mut ast: Vec<String>) -> io::Result<()> { 
+    pub fn compile_params(&mut self, mut ast: Vec<String>) -> io::Result<()> {
         let p = ast.pop();
         for x in ast {
             self.buf.write(x.as_bytes())?;
@@ -124,12 +154,23 @@ impl<W: Write> Compiler<W> {
     pub fn compile_return(&mut self, ast: Box<Expr>) -> io::Result<()> {
         self.buf.write(b"SET %~1=")?;
         self.compile_expr(*ast)?;
-        self.buf.write(b"\nGOTO: EOF")?;
         Ok(())
     }
 
     pub fn compile_break(&mut self) -> io::Result<()> {
-        write!(self.buf, ":ENDFOR{}", self.for_count)?;
+        let popped = self.stack.pop().unwrap();
+        self.stack.push(popped);
+        writeln!(self.buf, "GOTO :END{}", popped)?;
+        Ok(())
+    }
+
+    pub fn compile_continue(&mut self) -> io::Result<()> {
+        unimplemented!();
+        Ok(())
+    }
+
+    pub fn compile_const_decl(&mut self, ast: Box<ConstDecl>) -> io::Result<()> {
+        unimplemented!();
         Ok(())
     }
     pub fn compile_var_decl(&mut self, ast: Box<VariableDecl>) -> io::Result<()> {
@@ -137,9 +178,7 @@ impl<W: Write> Compiler<W> {
         if ast.is_numeric {
             self.buf.write(b"/A ")?;
         }
-       // self.buf.write(b"%")?;
         self.buf.write(ast.name.as_bytes())?;
-      //  self.buf.write(b"%")?;
         self.buf.write(b"=")?;
         self.compile_expr(ast.value)?;
         self.buf.write(b"\n")?;
@@ -153,6 +192,31 @@ impl<W: Write> Compiler<W> {
         Ok(())
     }
 
+    pub fn compile_while(&mut self, ast: Box<While>) -> io::Result<()> {
+        let num = SCOPE.fetch_add(1, Ordering::Relaxed);
+        self.stack.push(num);
+        write!(self.buf, ":START{}\nIF ", num)?;
+        self.compile_expr(ast.cond)?;
+        self.buf.write(b" (\n")?;
+        self.compile_expr(ast.body)?;
+        let popped = self.stack.pop().unwrap();
+        writeln!(self.buf, "GOTO :START{}", popped)?;
+        self.buf.write(b"\n)\n")?;
+        writeln!(self.buf, ":END{}", popped)?;
+        Ok(())
+    }
+
+    pub fn compile_loop(&mut self, ast: Box<Loop>) -> io::Result<()> {
+        let num = SCOPE.fetch_add(1, Ordering::Relaxed);
+        self.stack.push(num);
+        writeln!(self.buf, ":START{}", num)?;
+        self.compile_expr(ast.body)?;
+        let popped = self.stack.pop().unwrap();
+        writeln!(self.buf, "GOTO :START{}", popped)?;
+        writeln!(self.buf, ":END{}", popped)?;
+        Ok(())
+    }
+
     pub fn compile_binary_op_kind(&mut self, ast: BinaryOpKind) -> io::Result<()> {
         self.buf.write(match ast {
             BinaryOpKind::Add => b"+",
@@ -160,19 +224,27 @@ impl<W: Write> Compiler<W> {
             BinaryOpKind::Mul => b"*",
             BinaryOpKind::Div => b"/",
             BinaryOpKind::Assign => b"=",
-            BinaryOpKind::Eq => b"==",
-            BinaryOpKind::Ne => b"!=",
-            BinaryOpKind::Gt => b">",
-            BinaryOpKind::Lt => b"<",
-            BinaryOpKind::GtEq => b">=",
-            BinaryOpKind::LtEq => b"<=",
+            BinaryOpKind::Eq => b" EQU ",
+            BinaryOpKind::Ne => b" NEQ ",
+            BinaryOpKind::Gt => b" GTR ",
+            BinaryOpKind::Lt => b" LSS ",
+            BinaryOpKind::GtEq => b" GEQ ",
+            BinaryOpKind::LtEq => b" LEQ ",
             BinaryOpKind::Shr => b">>",
             BinaryOpKind::Shl => b"<<",
-            BinaryOpKind::Xor => b"!",
-            BinaryOpKind::LogicalAnd => b"&&",
-            BinaryOpKind::LogicalOr => b"||",
+            BinaryOpKind::Xor => b"^",
+            BinaryOpKind::LogicalAnd => b"AND",
+            BinaryOpKind::LogicalOr => b"OR",
             BinaryOpKind::BinaryAnd => b"&",
             BinaryOpKind::BinaryOr => b"|",
+        })?;
+        Ok(())
+    }
+    pub fn compile_unary_op_kind(&mut self, ast: UnaryOpKind) -> io::Result<()> {
+        self.buf.write(match ast {
+            UnaryOpKind::Minus => b"-",
+            UnaryOpKind::LogicalNot => b"NOT",
+            UnaryOpKind::BitwiseNot => b"~",
         })?;
         Ok(())
     }

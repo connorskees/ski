@@ -26,6 +26,7 @@ pub enum Expr {
     Int(u64),
     Str(String),
     Variable(String),
+    ForVariable(String),
     Unary(Box<UnaryExpr>),
     Binary(Box<BinaryExpr>),
     Return(Box<Expr>),
@@ -85,7 +86,6 @@ pub struct For {
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct While {
     pub cond: Expr,
-
     pub body: Expr,
 }
 

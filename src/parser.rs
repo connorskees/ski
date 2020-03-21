@@ -292,10 +292,13 @@ impl Parser {
         );
         self.eat_token();
         let right = self.eat_expr()?;
-        if has_open_paren {
-            expect_symbol!(self, CloseParen, "expected ')'");
-        }
-        Ok(Expr::Binary(Box::new(BinaryExpr { left, op, right })))
+        let b = Expr::Binary(Box::new(BinaryExpr { left, op, right }));
+        Ok(if has_open_paren {
+          expect_symbol!(self, CloseParen, "expected ')'");
+          Expr::Paren(Box::new(b))
+        } else {
+          b
+        })
     }
 
     fn eat_unary(&mut self) -> PResult {
@@ -356,10 +359,14 @@ impl Parser {
     }
 
     fn eat_var_or_literal(&mut self) -> PResult {
+       // dbg!(&self.eat_token().token_kind);
         match self.eat_token().token_kind {
             TokenKind::Identifier(ref ident) => Ok(Expr::Variable(ident.to_string())),
             TokenKind::Literal(Literal::Str(ref s)) => Ok(Expr::Str(s.to_string())),
             TokenKind::Literal(Literal::Int(i)) => Ok(Expr::Int(i)),
+            TokenKind::Symbol(Symbol::OpenParen) => {
+                self.eat_var_or_literal()
+            },
             _ => Err(ParseError::Error("expected identifier or literal", line!())),
         }
     }

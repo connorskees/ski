@@ -21,12 +21,11 @@ let x = 1 + 1
 //     }
 // )
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum Expr {
     Int(u64),
     Str(String),
     Variable(String),
-    ForVariable(String),
     Unary(Box<UnaryExpr>),
     Binary(Box<BinaryExpr>),
     Return(Box<Expr>),
@@ -41,80 +40,81 @@ pub enum Expr {
     Continue,
     Break,
     Block(Vec<Expr>),
+    Paren(Box<Expr>)
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct UnaryExpr {
     pub op: UnaryOpKind,
     pub child: Expr,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct BinaryExpr {
     pub op: BinaryOpKind,
     pub left: Expr,
     pub right: Expr,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct FuncDef {
     pub name: String,
     pub params: Vec<String>,
     pub body: Expr,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct FuncCall {
     pub func_name: String,
     pub params: Vec<Expr>,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct If {
     pub cond: Expr,
     pub then: Expr,
     pub else_: Expr,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct For {
     pub item: String,
     pub container: Expr,
     pub body: Expr,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct While {
     pub cond: Expr,
     pub body: Expr,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct Loop {
     pub body: Expr,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct VariableDecl {
     pub name: String,
     pub value: Expr,
     pub is_numeric: bool,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct ConstDecl {
     pub name: String,
     pub value: Expr,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum UnaryOpKind {
     Minus,
     LogicalNot,
     BitwiseNot,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum BinaryOpKind {
     Add,
     Sub,
